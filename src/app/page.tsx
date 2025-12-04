@@ -34,12 +34,16 @@ export default function Home() {
 
   return (
     <main className="relative">
+      {/* Top header with feedback */}
+      <header className="fixed top-0 right-0 z-50 p-4">
+        <FeedbackButton context={currentSlideId || 'general'} />
+      </header>
+
       {/* Navigation and controls */}
       <ScrollProgress />
       <SlideNav />
       <KeyboardControls />
       <KeyboardHints />
-      <FeedbackButton context={currentSlideId || 'general'} />
 
       {/* Hero */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden">

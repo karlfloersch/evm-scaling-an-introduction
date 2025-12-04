@@ -23,21 +23,19 @@ export function FeedbackButton({ context }: FeedbackButtonProps) {
     <motion.button
       onClick={handleClick}
       className="
-        fixed bottom-6 left-1/2 -translate-x-1/2 z-50
         flex items-center gap-2
-        bg-red-500/10 hover:bg-red-500/20
-        border border-red-500/30 hover:border-red-500/50
-        text-red-400 hover:text-red-300
-        px-4 py-2 rounded-full
+        bg-white/5 hover:bg-white/10
+        border border-white/10 hover:border-white/20
+        text-gray-400 hover:text-gray-200
+        px-3 py-1.5 rounded-lg
         text-sm font-medium
         transition-all duration-200
-        backdrop-blur-sm
       "
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
       <GitHubIcon className="w-4 h-4" />
-      <span>You&apos;re wrong!</span>
+      <span>Submit feedback</span>
     </motion.button>
   );
 }
