@@ -14,6 +14,15 @@ import {
   TransactionsIntroSlide,
   DemandCurvesIntroSlide,
 } from '@/components/slides/01-the-model';
+import {
+  FeeMarketsIntroSlide,
+  EIP1559ExplainedSlide,
+} from '@/components/slides/02-fee-markets';
+import {
+  ScalingSolutionsIntroSlide,
+  ParallelExecutionSlide,
+  TechComparisonSlide,
+} from '@/components/slides/03-scaling-solutions';
 
 // Slide definitions for navigation
 const slideDefinitions = [
@@ -22,6 +31,11 @@ const slideDefinitions = [
   { id: 'resources-intro', title: 'Resources', section: 'The Model', sectionIndex: 1, slideIndex: 0 },
   { id: 'transactions-intro', title: 'Transactions', section: 'The Model', sectionIndex: 1, slideIndex: 1 },
   { id: 'demand-curves-intro', title: 'Demand Curves', section: 'The Model', sectionIndex: 1, slideIndex: 2 },
+  { id: 'fee-markets-intro', title: 'The Allocation Problem', section: 'Fee Markets', sectionIndex: 2, slideIndex: 0 },
+  { id: 'eip1559-explained', title: 'EIP-1559', section: 'Fee Markets', sectionIndex: 2, slideIndex: 1 },
+  { id: 'scaling-solutions-intro', title: 'What is Scaling?', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 0 },
+  { id: 'parallel-execution', title: 'Parallel Execution', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 1 },
+  { id: 'tech-comparison', title: 'Tech Comparison', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 2 },
 ];
 
 export default function Home() {
@@ -117,6 +131,15 @@ export default function Home() {
       <TransactionsIntroSlide />
       <DemandCurvesIntroSlide />
 
+      {/* Fee Markets Slides */}
+      <FeeMarketsIntroSlide />
+      <EIP1559ExplainedSlide />
+
+      {/* Scaling Solutions Slides */}
+      <ScalingSolutionsIntroSlide />
+      <ParallelExecutionSlide />
+      <TechComparisonSlide />
+
       {/* Coming Soon placeholder */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6">
         <motion.div
@@ -128,8 +151,8 @@ export default function Home() {
             More Coming Soon
           </h2>
           <p className="text-gray-400 max-w-md mx-auto mb-8">
-            Fee markets, scaling solutions, project comparisons, and the
-            infamous &quot;Pump Your Numbers&quot; section are in development.
+            Project comparisons and the infamous &quot;Pump Your Numbers&quot;
+            section are in development.
           </p>
           <div className="flex gap-4 justify-center">
             <a

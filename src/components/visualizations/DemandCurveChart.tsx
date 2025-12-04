@@ -54,14 +54,24 @@ function DemandCurveChartInner({
     [demandCurve, xMax]
   );
 
+  // Calculate fixed Y-axis max based on transaction type's max possible demand
+  // This keeps the axis stable while the curve moves
+  const maxPossibleDemand = useMemo(() => {
+    // Max volatility factor is (1 + demandVolatility)
+    // At price 0, demand is highest
+    const maxVolatilityFactor = 1 + transactionType.demandVolatility;
+    const baseDemandAtZeroPrice = transactionType.baseDemand * maxVolatilityFactor;
+    return baseDemandAtZeroPrice * 1.2; // 20% padding
+  }, [transactionType]);
+
   const yScale = useMemo(
     () =>
       scaleLinear<number>({
-        domain: [0, Math.max(...demandCurve.map((d) => d.quantity)) * 1.1],
+        domain: [0, maxPossibleDemand],
         range: [yMax, 0],
         nice: true,
       }),
-    [demandCurve, yMax]
+    [maxPossibleDemand, yMax]
   );
 
   // Current demand at current price

@@ -79,7 +79,7 @@ export function DemandCurvesIntroSlide() {
                 className="w-full"
               />
               <p className="text-xs text-gray-500 mt-2">
-                Drag to see how demand changes with price
+                Drag to see quantity demanded at different prices
               </p>
             </div>
 
