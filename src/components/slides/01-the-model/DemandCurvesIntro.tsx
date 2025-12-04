@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SlideContainer, SlideHeader, AnimatedText } from '@/components/ui/SlideContainer';
 import { DemandCurveChart } from '@/components/visualizations/DemandCurveChart';
@@ -13,6 +13,17 @@ export function DemandCurvesIntroSlide() {
 
   // Animate timestamp for volatility demonstration
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Animation effect
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    const interval = setInterval(() => {
+      setTimestamp((t) => (t + 1) % 100);
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [isAnimating]);
 
   return (
     <SlideContainer id="demand-curves-intro" variant="default">
