@@ -255,7 +255,7 @@ export function SimulationSlide() {
       {compareMode ? (
         <div className="grid md:grid-cols-2 gap-6">
           <SimulationPanel
-            label={`Baseline (${leftMultiplier}x)`}
+            label="Simulation A"
             state={leftState}
             history={leftHistory}
             stats={leftStats}
@@ -263,10 +263,11 @@ export function SimulationSlide() {
             setMultiplier={setLeftMultiplier}
             gasPerSecond={gasPerSecond}
             color="text-blue-400"
-            barColor="bg-blue-500"
+            barColorHex="#3B82F6"
+            showMultiplierSlider
           />
           <SimulationPanel
-            label={`Scaled (${rightMultiplier}x)`}
+            label="Simulation B"
             state={rightState}
             history={rightHistory}
             stats={rightStats}
@@ -274,7 +275,8 @@ export function SimulationSlide() {
             setMultiplier={setRightMultiplier}
             gasPerSecond={gasPerSecond}
             color="text-green-400"
-            barColor="bg-green-500"
+            barColorHex="#22C55E"
+            showMultiplierSlider
           />
         </div>
       ) : (
@@ -288,7 +290,7 @@ export function SimulationSlide() {
             setMultiplier={setTechMultiplier}
             gasPerSecond={gasPerSecond}
             color="text-primary-400"
-            barColor="bg-primary-500"
+            barColorHex="#8B5CF6"
             showMultiplierSlider
           />
         </div>
@@ -345,7 +347,7 @@ function SimulationPanel({
   setMultiplier,
   gasPerSecond,
   color,
-  barColor,
+  barColorHex,
   showMultiplierSlider = false,
 }: {
   label: string;
@@ -356,7 +358,7 @@ function SimulationPanel({
   setMultiplier: (n: number) => void;
   gasPerSecond: number;
   color: string;
-  barColor: string;
+  barColorHex: string;
   showMultiplierSlider?: boolean;
 }) {
   return (
@@ -401,8 +403,11 @@ function SimulationPanel({
           return (
             <div
               key={i}
-              className={`flex-1 ${barColor}/60 rounded-t transition-all`}
-              style={{ height: `${height}%` }}
+              className="flex-1 rounded-t transition-all"
+              style={{
+                height: `${height}%`,
+                backgroundColor: `${barColorHex}99` // 60% opacity
+              }}
             />
           );
         })}
