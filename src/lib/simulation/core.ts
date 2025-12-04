@@ -335,9 +335,15 @@ export function calculateSimulationStats(history: SimulationHistory): Simulation
     };
   }
 
+  // Skip first 10% of simulation for warmup when calculating min values
+  const warmupCutoff = Math.floor(states.length * 0.1);
+  const statesAfterWarmup = states.slice(warmupCutoff);
+
   const tpsValues = states.map(s => s.tps);
+  const tpsAfterWarmup = statesAfterWarmup.map(s => s.tps);
   const utilValues = states.map(s => s.utilization);
   const feeValues = states.map(s => s.baseFee);
+  const feeAfterWarmup = statesAfterWarmup.map(s => s.baseFee);
   const pendingValues = states.map(s => s.pendingTxs);
 
   // Calculate total transactions (sum of TPS over time)
@@ -346,12 +352,12 @@ export function calculateSimulationStats(history: SimulationHistory): Simulation
   return {
     avgTPS: tpsValues.reduce((a, b) => a + b, 0) / tpsValues.length,
     peakTPS: Math.max(...tpsValues),
-    minTPS: Math.min(...tpsValues),
+    minTPS: tpsAfterWarmup.length > 0 ? Math.min(...tpsAfterWarmup) : 0,
     avgUtilization: utilValues.reduce((a, b) => a + b, 0) / utilValues.length,
     peakUtilization: Math.max(...utilValues),
     avgBaseFee: feeValues.reduce((a, b) => a + b, 0) / feeValues.length,
     peakBaseFee: Math.max(...feeValues),
-    minBaseFee: Math.min(...feeValues),
+    minBaseFee: feeAfterWarmup.length > 0 ? Math.min(...feeAfterWarmup) : 20,
     peakPendingTxs: Math.max(...pendingValues),
     totalTxProcessed,
   };
