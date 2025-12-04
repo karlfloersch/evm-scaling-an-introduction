@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Slide containers */
+.slide {
+  @apply min-h-screen w-full flex flex-col items-center justify-center px-4 py-16;
+}
+
+.slide-content {
+  @apply max-w-4xl w-full mx-auto;
+}
+
+/* Chart defaults */
+.visx-axis-tick text,
+.visx-axis-label {
+  fill: var(--foreground);
+  font-size: 12px;
+}
+
+.visx-grid line {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+/* Interactive elements */
+.interactive-panel {
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6;
+}
+
+.control-group {
+  @apply flex flex-col gap-2;
+}
+
+.control-label {
+  @apply text-sm text-gray-400 font-medium;
+}
+
+/* Animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #4DABF7, #9775FA, #F783AC, #FFD43B);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Resource colors */
+.resource-cpu { color: #FF6B6B; }
+.resource-state { color: #4DABF7; }
+.resource-bandwidth { color: #69DB7C; }
+.resource-verification { color: #9775FA; }
