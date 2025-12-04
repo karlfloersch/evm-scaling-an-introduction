@@ -16,7 +16,7 @@ export const normalDay: DemandScenario = {
   id: 'normal',
   name: 'Normal Day',
   description: 'Steady demand with minor fluctuations',
-  duration: 100,
+  duration: 300,
   getDemandMultiplier: (t) => {
     // Gentle sine wave for natural variation
     return 1 + 0.2 * Math.sin(t * Math.PI * 4);
@@ -31,7 +31,7 @@ export const nftDrop: DemandScenario = {
   id: 'nft-drop',
   name: 'NFT Drop',
   description: 'Popular mint causes demand spike',
-  duration: 100,
+  duration: 300,
   getDemandMultiplier: (t) => {
     // Build up anticipation
     if (t < 0.2) return 1 + t * 2;
@@ -58,7 +58,7 @@ export const marketCrash: DemandScenario = {
   id: 'market-crash',
   name: 'Market Crash',
   description: 'Panic selling creates sustained high demand',
-  duration: 100,
+  duration: 300,
   getDemandMultiplier: (t) => {
     // Normal start
     if (t < 0.1) return 1;
@@ -86,7 +86,7 @@ export const gradualGrowth: DemandScenario = {
   id: 'gradual-growth',
   name: 'Gradual Growth',
   description: 'Demand steadily increases over time',
-  duration: 100,
+  duration: 300,
   getDemandMultiplier: (t) => {
     // Linear growth from 0.5x to 3x
     return 0.5 + t * 2.5;
@@ -101,7 +101,7 @@ export const stressTest: DemandScenario = {
   id: 'stress-test',
   name: 'Stress Test',
   description: 'Maximum sustained load',
-  duration: 100,
+  duration: 300,
   getDemandMultiplier: (t) => {
     // Ramp up quickly then hold at max
     if (t < 0.1) return 1 + t * 40;
@@ -117,7 +117,7 @@ export const oscillating: DemandScenario = {
   id: 'oscillating',
   name: 'Oscillating',
   description: 'Regular demand cycles',
-  duration: 100,
+  duration: 300,
   getDemandMultiplier: (t) => {
     // Oscillate between 0.5x and 3x
     return 1.75 + 1.25 * Math.sin(t * Math.PI * 6);

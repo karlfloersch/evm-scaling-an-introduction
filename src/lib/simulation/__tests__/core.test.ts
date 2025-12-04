@@ -215,11 +215,11 @@ describe('Core Simulation', () => {
     });
 
     it('should mark complete when reaching duration', () => {
-      const state = { ...createInitialState(baseConfig), timestamp: 99 };
+      const state = { ...createInitialState(baseConfig), timestamp: 299 };
       const nextState = simulateStep(state, baseConfig, 2);
 
       expect(nextState.isComplete).toBe(true);
-      expect(nextState.timestamp).toBe(100);
+      expect(nextState.timestamp).toBe(300);
     });
 
     it('should calculate TPS', () => {

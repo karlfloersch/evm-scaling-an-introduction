@@ -307,10 +307,14 @@ export function runFullSimulation(
 export interface SimulationStats {
   avgTPS: number;
   peakTPS: number;
+  minTPS: number;
   avgUtilization: number;
+  peakUtilization: number;
   avgBaseFee: number;
   peakBaseFee: number;
+  minBaseFee: number;
   peakPendingTxs: number;
+  totalTxProcessed: number;
 }
 
 export function calculateSimulationStats(history: SimulationHistory): SimulationStats {
@@ -320,10 +324,14 @@ export function calculateSimulationStats(history: SimulationHistory): Simulation
     return {
       avgTPS: 0,
       peakTPS: 0,
+      minTPS: 0,
       avgUtilization: 0,
+      peakUtilization: 0,
       avgBaseFee: 20,
       peakBaseFee: 20,
+      minBaseFee: 20,
       peakPendingTxs: 0,
+      totalTxProcessed: 0,
     };
   }
 
@@ -332,12 +340,19 @@ export function calculateSimulationStats(history: SimulationHistory): Simulation
   const feeValues = states.map(s => s.baseFee);
   const pendingValues = states.map(s => s.pendingTxs);
 
+  // Calculate total transactions (sum of TPS over time)
+  const totalTxProcessed = tpsValues.reduce((a, b) => a + b, 0);
+
   return {
     avgTPS: tpsValues.reduce((a, b) => a + b, 0) / tpsValues.length,
     peakTPS: Math.max(...tpsValues),
+    minTPS: Math.min(...tpsValues),
     avgUtilization: utilValues.reduce((a, b) => a + b, 0) / utilValues.length,
+    peakUtilization: Math.max(...utilValues),
     avgBaseFee: feeValues.reduce((a, b) => a + b, 0) / feeValues.length,
     peakBaseFee: Math.max(...feeValues),
+    minBaseFee: Math.min(...feeValues),
     peakPendingTxs: Math.max(...pendingValues),
+    totalTxProcessed,
   };
 }

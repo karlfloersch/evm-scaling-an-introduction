@@ -23,7 +23,9 @@ export function SimulationSlide() {
   // Simulation state
   const [state, setState] = useState<SimulationState | null>(null);
   const [history, setHistory] = useState<SimulationState[]>([]);
+  const [fullHistory, setFullHistory] = useState<SimulationState[]>([]); // For final stats
   const [isRunning, setIsRunning] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   // Build config
   const scenario = useMemo(
@@ -52,7 +54,9 @@ export function SimulationSlide() {
     const initialState = createInitialState(config);
     setState(initialState);
     setHistory([initialState]);
+    setFullHistory([initialState]);
     setIsRunning(false);
+    setShowResults(false);
   }, [config]);
 
   // Initialize on mount and config change
@@ -69,7 +73,15 @@ export function SimulationSlide() {
         if (!prevState || prevState.isComplete) return prevState;
 
         const nextState = simulateStep(prevState, config, 1);
-        setHistory(prev => [...prev.slice(-100), nextState]); // Keep last 100 states
+        setHistory(prev => [...prev.slice(-50), nextState]); // Keep last 50 for chart
+        setFullHistory(prev => [...prev, nextState]); // Keep all for final stats
+
+        // Show results when complete
+        if (nextState.isComplete) {
+          setIsRunning(false);
+          setShowResults(true);
+        }
+
         return nextState;
       });
     }, 50); // 20 FPS
@@ -77,10 +89,16 @@ export function SimulationSlide() {
     return () => clearInterval(interval);
   }, [isRunning, config, state]);
 
-  // Calculate stats
+  // Calculate stats for live display
   const stats = useMemo(() =>
     calculateSimulationStats({ states: history, config }),
     [history, config]
+  );
+
+  // Calculate final stats from full history
+  const finalStats = useMemo(() =>
+    calculateSimulationStats({ states: fullHistory, config }),
+    [fullHistory, config]
   );
 
   // Progress
@@ -301,6 +319,90 @@ export function SimulationSlide() {
           </div>
         </div>
       </AnimatedText>
+
+      {/* Results Modal */}
+      {showResults && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowResults(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', damping: 20 }}
+            className="bg-gray-900 border border-white/20 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white">Simulation Complete</h3>
+              <button
+                onClick={() => setShowResults(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="text-sm text-gray-400 mb-1">Scenario</div>
+              <div className="text-lg text-white font-medium">{scenario.name}</div>
+              <div className="text-sm text-gray-500">{scenario.description}</div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+              <ResultStat label="Peak TPS" value={finalStats.peakTPS.toFixed(0)} unit="tx/sec" highlight />
+              <ResultStat label="Average TPS" value={finalStats.avgTPS.toFixed(1)} unit="tx/sec" />
+              <ResultStat label="Min TPS" value={finalStats.minTPS.toFixed(0)} unit="tx/sec" />
+              <ResultStat label="Total Processed" value={Math.round(finalStats.totalTxProcessed).toLocaleString()} unit="txs" highlight />
+              <ResultStat label="Avg Utilization" value={`${(finalStats.avgUtilization * 100).toFixed(0)}%`} />
+              <ResultStat label="Peak Utilization" value={`${(finalStats.peakUtilization * 100).toFixed(0)}%`} />
+              <ResultStat label="Peak Fee" value={finalStats.peakBaseFee.toFixed(1)} unit="gwei" />
+              <ResultStat label="Average Fee" value={finalStats.avgBaseFee.toFixed(1)} unit="gwei" />
+              <ResultStat label="Min Fee" value={finalStats.minBaseFee.toFixed(1)} unit="gwei" />
+            </div>
+
+            <div className="bg-white/5 rounded-lg p-4 mb-6">
+              <div className="text-sm text-gray-400 mb-2">Configuration</div>
+              <div className="flex gap-6 text-sm">
+                <div>
+                  <span className="text-gray-500">Base Gas: </span>
+                  <span className="text-white font-mono">{gasPerSecond} Mgas/s</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Scaling: </span>
+                  <span className="text-white font-mono">{techMultiplier}x</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Effective: </span>
+                  <span className="text-white font-mono">{(gasPerSecond * techMultiplier).toFixed(1)} Mgas/s</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowResults(false);
+                  reset();
+                }}
+                className="flex-1 px-4 py-3 rounded-lg font-medium bg-primary-500/20 text-primary-400 border border-primary-500/30 hover:bg-primary-500/30 transition-all"
+              >
+                Run Again
+              </button>
+              <button
+                onClick={() => setShowResults(false)}
+                className="px-4 py-3 rounded-lg font-medium bg-white/10 text-gray-400 border border-white/10 hover:bg-white/15 transition-all"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </SlideContainer>
   );
 }
@@ -321,6 +423,28 @@ function MetricCard({
       <div className="text-xs text-gray-500">{label}</div>
       <div className={`text-2xl font-bold ${color}`}>{value}</div>
       <div className="text-xs text-gray-500">{sublabel}</div>
+    </div>
+  );
+}
+
+function ResultStat({
+  label,
+  value,
+  unit,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className={`rounded-lg p-4 ${highlight ? 'bg-primary-500/10 border border-primary-500/20' : 'bg-white/5'}`}>
+      <div className="text-xs text-gray-400 mb-1">{label}</div>
+      <div className={`text-xl font-bold ${highlight ? 'text-primary-400' : 'text-white'}`}>
+        {value}
+        {unit && <span className="text-sm font-normal text-gray-500 ml-1">{unit}</span>}
+      </div>
     </div>
   );
 }
