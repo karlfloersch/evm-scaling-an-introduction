@@ -23,6 +23,7 @@ import {
   ParallelExecutionSlide,
   TechComparisonSlide,
 } from '@/components/slides/03-scaling-solutions';
+import { SimulationSlide } from '@/components/slides/04-simulation';
 
 // Slide definitions for navigation
 const slideDefinitions = [
@@ -36,6 +37,7 @@ const slideDefinitions = [
   { id: 'scaling-solutions-intro', title: 'What is Scaling?', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 0 },
   { id: 'parallel-execution', title: 'Parallel Execution', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 1 },
   { id: 'tech-comparison', title: 'Tech Comparison', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 2 },
+  { id: 'simulation-dashboard', title: 'TPS Simulator', section: 'Interactive Simulation', sectionIndex: 4, slideIndex: 0 },
 ];
 
 export default function Home() {
@@ -139,6 +141,9 @@ export default function Home() {
       <ScalingSolutionsIntroSlide />
       <ParallelExecutionSlide />
       <TechComparisonSlide />
+
+      {/* Interactive Simulation */}
+      <SimulationSlide />
 
       {/* Coming Soon placeholder */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6">
