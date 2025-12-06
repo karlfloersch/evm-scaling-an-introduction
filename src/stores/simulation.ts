@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Resource, ResourceState } from '@/data/resources/types';
 import type { TransactionType, Transaction } from '@/data/transactions/types';
-import type { Tech } from '@/data/tech/types';
+import type { ScalingSolution } from '@/data/scaling-solutions/types';
 
 export interface SimulationConfig {
   /** Resources to include in simulation */
@@ -10,8 +10,8 @@ export interface SimulationConfig {
   /** Transaction types to simulate */
   transactionTypes: TransactionType[];
 
-  /** Active tech stack */
-  techStack: Tech[];
+  /** Active scaling solutions */
+  scalingSolutions: ScalingSolution[];
 
   /** Fee market model to use */
   feeMarketModel: 'eip1559' | 'multidim-1559' | 'ai-oracle' | 'fixed';
@@ -78,26 +78,26 @@ export interface SimulationStore {
   reset: () => void;
   step: () => void;
 
-  // Tech stack management
-  enableTech: (techId: string) => void;
-  disableTech: (techId: string) => void;
-  toggleTech: (techId: string) => void;
+  // Scaling solution management
+  enableSolution: (solutionId: string) => void;
+  disableSolution: (solutionId: string) => void;
+  toggleSolution: (solutionId: string) => void;
 
   // Available data (loaded from data files)
   availableResources: Resource[];
   availableTransactions: TransactionType[];
-  availableTech: Tech[];
+  availableSolutions: ScalingSolution[];
   setAvailableData: (data: {
     resources?: Resource[];
     transactions?: TransactionType[];
-    tech?: Tech[];
+    solutions?: ScalingSolution[];
   }) => void;
 }
 
 const defaultConfig: SimulationConfig = {
   resources: [],
   transactionTypes: [],
-  techStack: [],
+  scalingSolutions: [],
   feeMarketModel: 'eip1559',
   duration: 60,
   timestep: 0.1,
@@ -186,49 +186,49 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     });
   },
 
-  enableTech: (techId) => {
-    const { config, availableTech } = get();
-    const tech = availableTech.find((t) => t.id === techId);
-    if (tech && !config.techStack.find((t) => t.id === techId)) {
+  enableSolution: (solutionId) => {
+    const { config, availableSolutions } = get();
+    const solution = availableSolutions.find((s) => s.id === solutionId);
+    if (solution && !config.scalingSolutions.find((s) => s.id === solutionId)) {
       set({
         config: {
           ...config,
-          techStack: [...config.techStack, tech],
+          scalingSolutions: [...config.scalingSolutions, solution],
         },
       });
     }
   },
 
-  disableTech: (techId) => {
+  disableSolution: (solutionId) => {
     const { config } = get();
     set({
       config: {
         ...config,
-        techStack: config.techStack.filter(
-          (t) => t.id !== techId
+        scalingSolutions: config.scalingSolutions.filter(
+          (s) => s.id !== solutionId
         ),
       },
     });
   },
 
-  toggleTech: (techId) => {
+  toggleSolution: (solutionId) => {
     const { config } = get();
-    const isEnabled = config.techStack.some((t) => t.id === techId);
+    const isEnabled = config.scalingSolutions.some((s) => s.id === solutionId);
     if (isEnabled) {
-      get().disableTech(techId);
+      get().disableSolution(solutionId);
     } else {
-      get().enableTech(techId);
+      get().enableSolution(solutionId);
     }
   },
 
   availableResources: [],
   availableTransactions: [],
-  availableTech: [],
+  availableSolutions: [],
 
   setAvailableData: (data) =>
     set((state) => ({
       availableResources: data.resources ?? state.availableResources,
       availableTransactions: data.transactions ?? state.availableTransactions,
-      availableTech: data.tech ?? state.availableTech,
+      availableSolutions: data.solutions ?? state.availableSolutions,
     })),
 }));

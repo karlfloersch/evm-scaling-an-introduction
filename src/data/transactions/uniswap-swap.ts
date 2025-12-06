@@ -26,10 +26,14 @@ export const uniswapSwapEthUsdc: TransactionType = {
   },
 
   resourceConsumption: {
-    'cpu-gas': 150000,
-    'state-reads': 12,
-    'state-writes': 6,
-    'verification': 1,
+    'evm-compute': 0.15,         // 150,000 gas = 0.15 Mgas
+    'state-access': 300,         // Pool state, ticks, balances - heavy I/O
+    'merklization': 24,          // Many storage slot updates
+    'block-verification': 0.15,  // Same as compute
+    'block-distribution': 0.35,  // ~350 bytes tx data
+    'state-growth': 0,           // No new state
+    'history-growth': 0.35,      // ~350 bytes in history
+    'proof-generation': 0.15,    // Same as compute
   },
 
   baseDemand: 3,
@@ -40,6 +44,8 @@ export const uniswapSwapEthUsdc: TransactionType = {
   percentOfMainnetTxs: 5,
 
   color: '#FF6B9D',
+
+  feeGwei: 80,  // High fee - time-sensitive DeFi trades
 
   notes: 'The most popular DEX pool. ALL swaps on this pool conflict - they must execute sequentially even with parallel execution enabled.',
 };
@@ -69,10 +75,14 @@ export const uniswapSwapEthDai: TransactionType = {
   },
 
   resourceConsumption: {
-    'cpu-gas': 150000,
-    'state-reads': 12,
-    'state-writes': 6,
-    'verification': 1,
+    'evm-compute': 0.15,         // 150,000 gas = 0.15 Mgas
+    'state-access': 300,         // Pool state, ticks, balances - heavy I/O
+    'merklization': 24,          // Many storage slot updates
+    'block-verification': 0.15,  // Same as compute
+    'block-distribution': 0.35,  // ~350 bytes tx data
+    'state-growth': 0,           // No new state
+    'history-growth': 0.35,      // ~350 bytes in history
+    'proof-generation': 0.15,    // Same as compute
   },
 
   baseDemand: 1,
@@ -83,6 +93,8 @@ export const uniswapSwapEthDai: TransactionType = {
   percentOfMainnetTxs: 2,
 
   color: '#F9A825',
+
+  feeGwei: 70,  // High fee - time-sensitive DeFi trades
 
   notes: 'Different pool from ETH/USDC - can run in parallel with ETH/USDC swaps but not with other ETH/DAI swaps.',
 };

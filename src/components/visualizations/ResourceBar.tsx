@@ -21,7 +21,7 @@ export function ResourceBar({
   animated = true,
 }: ResourceBarProps) {
   const utilization = state?.utilization ?? 0;
-  const effectiveMax = state?.effectiveMaxThroughput ?? resource.currentBaseline;
+  const effectiveMax = state?.effectiveMaxThroughput ?? resource.maxThroughput;
   const currentThroughput = state?.currentThroughput ?? 0;
 
   // Color based on utilization
@@ -67,13 +67,13 @@ export function ResourceBar({
         />
 
         {/* Effective max indicator (if different from base) */}
-        {effectiveMax !== resource.currentBaseline && (
+        {effectiveMax !== resource.maxThroughput && (
           <div
             className="absolute inset-y-0 w-0.5 bg-white/50"
             style={{
-              left: `${(resource.currentBaseline / effectiveMax) * 100}%`,
+              left: `${(resource.maxThroughput / effectiveMax) * 100}%`,
             }}
-            title={`Base capacity: ${resource.currentBaseline} ${resource.unit}`}
+            title={`Base capacity: ${resource.maxThroughput} ${resource.unit}`}
           />
         )}
 

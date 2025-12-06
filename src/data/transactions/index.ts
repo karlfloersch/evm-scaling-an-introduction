@@ -9,6 +9,8 @@ import { ethTransfer } from './eth-transfer';
 import { erc20Transfer } from './erc20-transfer';
 import { uniswapSwapEthUsdc, uniswapSwapEthDai } from './uniswap-swap';
 import { nftMint, nftTransfer } from './nft-mint';
+import { rollupBatch, zkProofVerify } from './rollup-batch';
+import { xenMint } from './xen-mint';
 import type { TransactionType } from './types';
 
 export * from './types';
@@ -23,6 +25,9 @@ export const transactionTypes: TransactionType[] = [
   uniswapSwapEthDai,
   nftMint,
   nftTransfer,
+  rollupBatch,
+  zkProofVerify,
+  xenMint,
 ];
 
 /**

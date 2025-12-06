@@ -160,6 +160,11 @@ export function SimulationSlide() {
   // Progress
   const progress = leftState ? (leftState.timestamp / scenario.duration) * 100 : 0;
 
+  // Shared max TPS for consistent Y-axis scaling in compare mode
+  const sharedMaxTPS = compareMode
+    ? Math.max(leftStats.peakTPS, rightStats.peakTPS, 1)
+    : undefined;
+
   // Check if both complete
   const isComplete = compareMode
     ? (leftState?.isComplete && rightState?.isComplete)
@@ -265,6 +270,7 @@ export function SimulationSlide() {
             color="text-blue-400"
             barColorHex="#3B82F6"
             showMultiplierSlider
+            sharedMaxTPS={sharedMaxTPS}
           />
           <SimulationPanel
             label="Simulation B"
@@ -277,6 +283,7 @@ export function SimulationSlide() {
             color="text-green-400"
             barColorHex="#22C55E"
             showMultiplierSlider
+            sharedMaxTPS={sharedMaxTPS}
           />
         </div>
       ) : (
@@ -349,6 +356,7 @@ function SimulationPanel({
   color,
   barColorHex,
   showMultiplierSlider = false,
+  sharedMaxTPS,
 }: {
   label: string;
   state: SimulationState | null;
@@ -360,7 +368,10 @@ function SimulationPanel({
   color: string;
   barColorHex: string;
   showMultiplierSlider?: boolean;
+  sharedMaxTPS?: number;
 }) {
+  // Use shared max for consistent Y-axis, or fall back to own peak
+  const maxTPS = sharedMaxTPS ?? Math.max(stats.peakTPS, 1);
   return (
     <div className="interactive-panel">
       <div className="flex justify-between items-center mb-4">
@@ -398,7 +409,6 @@ function SimulationPanel({
       {/* TPS Chart */}
       <div className="h-20 flex items-end gap-0.5 mb-2">
         {history.slice(-50).map((s, i) => {
-          const maxTPS = Math.max(stats.peakTPS, 1);
           const height = (s.tps / maxTPS) * 100;
           return (
             <div
@@ -422,6 +432,7 @@ function SimulationPanel({
       <div className="flex justify-between text-xs text-gray-500">
         <span>Peak: {stats.peakTPS.toFixed(0)} TPS</span>
         <span>Avg: {stats.avgTPS.toFixed(1)} TPS</span>
+        {sharedMaxTPS && <span className="text-gray-600">Scale: {sharedMaxTPS.toFixed(0)}</span>}
       </div>
     </div>
   );
@@ -461,8 +472,9 @@ function ComparisonResultsModal({
   onClose: () => void;
   onRunAgain: () => void;
 }) {
-  // Downsample history for charts
-  const sampleRate = Math.max(1, Math.floor(leftHistory.length / 100));
+  // Downsample history for charts - limit to 60 points for visibility
+  const targetPoints = 60;
+  const sampleRate = Math.max(1, Math.floor(leftHistory.length / targetPoints));
   const leftSampled = leftHistory.filter((_, i) => i % sampleRate === 0);
   const rightSampled = rightHistory.filter((_, i) => i % sampleRate === 0);
 
@@ -497,79 +509,57 @@ function ComparisonResultsModal({
           <div className="text-sm text-gray-500">{scenario.description}</div>
         </div>
 
-        {/* TPS Time Series Chart */}
+        {/* TPS Time Series Charts */}
         <div className="mb-6">
-          <div className="text-sm text-gray-400 mb-2">TPS Over Time</div>
-          <div className="bg-black/30 rounded-lg p-4">
-            <div className="h-32 flex items-end gap-px relative">
-              {leftSampled.map((s, i) => {
-                const leftHeight = (s.tps / maxTPS) * 100;
-                const rightHeight = compareMode && rightSampled[i]
-                  ? (rightSampled[i].tps / maxTPS) * 100
-                  : 0;
-                return (
-                  <div key={i} className="flex-1 flex items-end gap-px">
-                    <div
-                      className="flex-1 bg-blue-500/70 rounded-t"
-                      style={{ height: `${leftHeight}%` }}
-                    />
-                    {compareMode && (
-                      <div
-                        className="flex-1 bg-green-500/70 rounded-t"
-                        style={{ height: `${rightHeight}%` }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex justify-between mt-2 text-xs">
-              <div className="flex gap-4">
-                <span className="text-blue-400">■ {leftMultiplier}x: {leftStats.avgTPS.toFixed(0)} avg</span>
-                {compareMode && (
-                  <span className="text-green-400">■ {rightMultiplier}x: {rightStats.avgTPS.toFixed(0)} avg</span>
-                )}
-              </div>
-              <span className="text-gray-500">Peak: {maxTPS.toFixed(0)} TPS</span>
-            </div>
+          <div className="text-sm text-gray-400 mb-2">TPS Over Time (shared scale: {maxTPS.toFixed(0)} TPS)</div>
+          <div className={compareMode ? "grid md:grid-cols-2 gap-4" : ""}>
+            <ResultsChart
+              label={`Simulation A (${leftMultiplier}x)`}
+              data={leftSampled}
+              getValue={(s) => s.tps}
+              maxValue={maxTPS}
+              color="#3B82F6"
+              avgValue={leftStats.avgTPS}
+              unit="TPS"
+            />
+            {compareMode && (
+              <ResultsChart
+                label={`Simulation B (${rightMultiplier}x)`}
+                data={rightSampled}
+                getValue={(s) => s.tps}
+                maxValue={maxTPS}
+                color="#22C55E"
+                avgValue={rightStats.avgTPS}
+                unit="TPS"
+              />
+            )}
           </div>
         </div>
 
-        {/* Fee Time Series Chart */}
+        {/* Fee Time Series Charts */}
         <div className="mb-6">
-          <div className="text-sm text-gray-400 mb-2">Base Fee Over Time (gwei)</div>
-          <div className="bg-black/30 rounded-lg p-4">
-            <div className="h-24 flex items-end gap-px">
-              {leftSampled.map((s, i) => {
-                const leftHeight = (s.baseFee / maxFee) * 100;
-                const rightHeight = compareMode && rightSampled[i]
-                  ? (rightSampled[i].baseFee / maxFee) * 100
-                  : 0;
-                return (
-                  <div key={i} className="flex-1 flex items-end gap-px">
-                    <div
-                      className="flex-1 bg-blue-500/50 rounded-t"
-                      style={{ height: `${leftHeight}%` }}
-                    />
-                    {compareMode && (
-                      <div
-                        className="flex-1 bg-green-500/50 rounded-t"
-                        style={{ height: `${rightHeight}%` }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex justify-between mt-2 text-xs">
-              <div className="flex gap-4">
-                <span className="text-blue-400">■ {leftMultiplier}x: {leftStats.avgBaseFee.toFixed(0)}g avg</span>
-                {compareMode && (
-                  <span className="text-green-400">■ {rightMultiplier}x: {rightStats.avgBaseFee.toFixed(0)}g avg</span>
-                )}
-              </div>
-              <span className="text-gray-500">Peak: {maxFee.toFixed(0)} gwei</span>
-            </div>
+          <div className="text-sm text-gray-400 mb-2">Base Fee Over Time (shared scale: {maxFee.toFixed(0)} gwei)</div>
+          <div className={compareMode ? "grid md:grid-cols-2 gap-4" : ""}>
+            <ResultsChart
+              label={`Simulation A (${leftMultiplier}x)`}
+              data={leftSampled}
+              getValue={(s) => s.baseFee}
+              maxValue={maxFee}
+              color="#3B82F6"
+              avgValue={leftStats.avgBaseFee}
+              unit="gwei"
+            />
+            {compareMode && (
+              <ResultsChart
+                label={`Simulation B (${rightMultiplier}x)`}
+                data={rightSampled}
+                getValue={(s) => s.baseFee}
+                maxValue={maxFee}
+                color="#22C55E"
+                avgValue={rightStats.avgBaseFee}
+                unit="gwei"
+              />
+            )}
           </div>
         </div>
 
@@ -703,6 +693,63 @@ function StatsCard({
       </div>
       <div className="mt-3 pt-3 border-t border-white/10 text-xs text-gray-500">
         Capacity: {(gasPerSecond * multiplier).toFixed(1)} Mgas/s
+      </div>
+    </div>
+  );
+}
+
+function ResultsChart({
+  label,
+  data,
+  getValue,
+  maxValue,
+  color,
+  avgValue,
+  unit,
+}: {
+  label: string;
+  data: SimulationState[];
+  getValue: (s: SimulationState) => number;
+  maxValue: number;
+  color: string;
+  avgValue: number;
+  unit: string;
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="bg-black/30 rounded-lg p-4">
+        <div className="text-xs mb-2" style={{ color }}>{label}</div>
+        <div className="h-24 flex items-center justify-center text-gray-500 text-sm">
+          No data
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-black/30 rounded-lg p-4">
+      <div className="text-xs mb-2" style={{ color }}>{label}</div>
+      <div className="h-24 flex items-end" style={{ gap: '1px' }}>
+        {data.map((s, i) => {
+          const value = getValue(s);
+          const height = Math.max((value / maxValue) * 100, 2);
+          return (
+            <div
+              key={i}
+              className="flex-1 rounded-t"
+              style={{
+                height: `${height}%`,
+                backgroundColor: color,
+                opacity: 0.7,
+                minWidth: '2px',
+              }}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-2 text-xs text-gray-500">
+        <span>Avg: {avgValue.toFixed(1)} {unit}</span>
+        <span>Peak: {Math.max(...data.map(getValue)).toFixed(0)} {unit}</span>
       </div>
     </div>
   );

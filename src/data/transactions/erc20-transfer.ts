@@ -26,10 +26,14 @@ export const erc20Transfer: TransactionType = {
   },
 
   resourceConsumption: {
-    'cpu-gas': 65000,
-    'state-reads': 4,
-    'state-writes': 2,
-    'verification': 1,
+    'evm-compute': 0.065,        // 65,000 gas = 0.065 Mgas
+    'state-access': 150,         // Token balance reads/writes with I/O overhead
+    'merklization': 8,           // 2 storage + 2 balance updates
+    'block-verification': 0.065, // Same as compute
+    'block-distribution': 0.14,  // ~140 bytes tx data
+    'state-growth': 0,           // Usually no new state
+    'history-growth': 0.14,      // ~140 bytes in history
+    'proof-generation': 0.065,   // Same as compute
   },
 
   baseDemand: 15,
@@ -40,6 +44,8 @@ export const erc20Transfer: TransactionType = {
   percentOfMainnetTxs: 20,
 
   color: '#69DB7C',
+
+  feeGwei: 40,  // Higher fee - important financial utility
 
   notes: 'Stablecoin transfers are a large portion of chain activity. Like ETH transfers, they parallelize well.',
 };

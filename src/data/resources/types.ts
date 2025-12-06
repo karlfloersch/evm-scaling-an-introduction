@@ -2,7 +2,13 @@
  * Resource Definition
  *
  * A resource represents a finite computational resource that limits blockchain throughput.
- * Examples: CPU execution (gas/sec), state reads, state writes, bandwidth, etc.
+ * All resources are expressed as per-second throughput limits.
+ *
+ * Categories:
+ * - Building: Resources consumed during block construction
+ * - Verification: Resources consumed when validating blocks
+ * - Sync/Archive: Resources related to state/history growth rates
+ * - Proving: Resources for ZK proof generation
  *
  * To add a new resource:
  * 1. Create a new file in src/data/resources/[resource-id].ts
@@ -10,33 +16,45 @@
  * 3. Import and add it to the registry in src/data/resources/index.ts
  */
 export interface Resource {
-  /** Unique identifier (kebab-case, e.g., 'cpu-gas') */
-  id: string;
+  /** Unique identifier (kebab-case, e.g., 'evm-compute') */
+  id: ResourceId;
 
   /** Human-readable name */
   name: string;
 
+  /** Category for grouping */
+  category: ResourceCategory;
+
   /** Short description of what this resource represents */
   description: string;
 
-  /** Unit of measurement (e.g., 'Mgas/sec', 'reads/sec', 'MB/sec') */
+  /** Unit of measurement (e.g., 'Mgas/sec', 'ops/sec', 'bytes/sec') */
   unit: string;
 
-  /** Maximum theoretical throughput per second */
+  /** Maximum throughput per second (current Ethereum mainnet) */
   maxThroughput: number;
-
-  /** Current Ethereum mainnet baseline throughput */
-  currentBaseline: number;
 
   /** Color for visualizations (hex) */
   color: string;
 
-  /** Icon name for UI (from a predefined set) */
-  icon: ResourceIcon;
+  /** Icon/emoji for UI */
+  icon: string;
 
   /** Additional notes about this resource */
   notes?: string;
 }
+
+export type ResourceCategory = 'building' | 'verification' | 'sync-archive' | 'proving';
+
+export type ResourceId =
+  | 'evm-compute'
+  | 'state-access'
+  | 'merklization'
+  | 'block-verification'
+  | 'block-distribution'
+  | 'state-growth'
+  | 'history-growth'
+  | 'proof-generation';
 
 export type ResourceIcon =
   | 'cpu'

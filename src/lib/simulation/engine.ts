@@ -4,17 +4,13 @@
  * Core simulation logic for modeling resource consumption,
  * transaction throughput, and fee markets.
  *
- * The new architecture:
- * - Tech defines resources via `defineResources`
- * - Tech calculates consumption via `calculateConsumption`
- * - Resources are composed from the tech stack
+ * This is a simplified version that works with the new resource model.
  */
 
-import type { Resource, ResourceState } from '@/data/resources/types';
-import type { TransactionType, Transaction, DemandPoint } from '@/data/transactions/types';
-import type { Tech, SimulationContext, ResourceConsumption } from '@/data/tech/types';
-import { composeResources, calculateTotalConsumption, applyTechStack, applyConsumptionReduction } from '@/data/tech/types';
+import type { Resource, ResourceState, ResourceId } from '@/data/resources/types';
+import type { TransactionType } from '@/data/transactions/types';
 import { generateDemandCurve, isFullyParallelizable } from '@/data/transactions/types';
+import type { ScalingSolution } from '@/data/scaling-solutions/types';
 
 /**
  * Simulation configuration
@@ -22,7 +18,7 @@ import { generateDemandCurve, isFullyParallelizable } from '@/data/transactions/
 export interface SimulationConfig {
   resources: Resource[];
   transactionTypes: TransactionType[];
-  techStack: Tech[];
+  scalingSolutions: ScalingSolution[];
   feeMarketModel: FeeMarketModel;
   duration: number;
   timestep: number;
@@ -68,46 +64,32 @@ export interface SimulationResult {
 export type FeeMarketModel = 'eip1559' | 'multidim-1559' | 'ai-oracle' | 'fixed';
 
 /**
- * Calculate effective max throughput for a resource after applying tech stack
+ * Calculate effective max throughput for a resource after applying scaling solutions
  */
 function getEffectiveMaxThroughput(
   resource: Resource,
-  techStack: Tech[]
+  scalingSolutions: ScalingSolution[]
 ): number {
-  return applyTechStack(
-    resource.currentBaseline, // Start from current baseline, not theoretical max
-    techStack,
-    resource.id
-  );
+  let effectiveMax = resource.maxThroughput;
+
+  for (const solution of scalingSolutions) {
+    const multiplier = solution.multipliers[resource.id];
+    if (multiplier && multiplier > 1) {
+      effectiveMax *= multiplier;
+    }
+  }
+
+  return effectiveMax;
 }
 
 /**
- * Calculate resource consumption for a transaction using new architecture
- */
-function getResourceConsumptionNew(
-  txType: TransactionType,
-  techStack: Tech[],
-  context: SimulationContext
-): ResourceConsumption {
-  return calculateTotalConsumption(txType, techStack, context);
-}
-
-/**
- * Calculate resource consumption for a transaction (legacy path)
+ * Calculate resource consumption for a transaction
  */
 function getResourceConsumption(
   txType: TransactionType,
-  resource: Resource,
-  techStack: Tech[]
+  resourceId: ResourceId
 ): number {
-  const baseConsumption = txType.resourceConsumption[resource.id] || 0;
-  return applyConsumptionReduction(
-    baseConsumption,
-    techStack,
-    resource.id,
-    txType.id,
-    isFullyParallelizable(txType)
-  );
+  return txType.resourceConsumption[resourceId] || 0;
 }
 
 /**
@@ -160,23 +142,15 @@ function simulationStep(
   prevSnapshot: SimulationSnapshot,
   resources: Resource[]
 ): SimulationSnapshot {
-  const { transactionTypes, techStack, eip1559Params, timestep } = config;
+  const { transactionTypes, scalingSolutions, eip1559Params, timestep } = config;
 
   const timestamp = prevSnapshot.timestamp + timestep;
   const baseFee = prevSnapshot.baseFee;
 
-  // Build simulation context
-  const context: SimulationContext = {
-    currentTransactions: transactionTypes,
-    timestamp,
-    activeTech: techStack,
-    laneAssignments: {},
-  };
-
   // Initialize resource states
   const resourceStates: Record<string, ResourceState> = {};
   for (const resource of resources) {
-    const effectiveMax = getEffectiveMaxThroughput(resource, techStack);
+    const effectiveMax = getEffectiveMaxThroughput(resource, scalingSolutions);
     resourceStates[resource.id] = {
       resourceId: resource.id,
       currentThroughput: 0,
@@ -195,63 +169,32 @@ function simulationStep(
     const demand = getDemandAtPrice(txType, timestamp, baseFee);
     const desiredTxCount = demand * timestep;
 
-    // Use new architecture if tech has calculateConsumption, otherwise legacy
-    const hasTechConsumption = techStack.some(t => t.calculateConsumption);
-
     let executableTxCount = desiredTxCount;
 
-    if (hasTechConsumption) {
-      // New architecture: use calculateConsumption from tech
-      const consumption = getResourceConsumptionNew(txType, techStack, context);
+    // Check resource constraints
+    for (const resource of resources) {
+      const consumption = getResourceConsumption(txType, resource.id);
+      if (consumption > 0) {
+        const maxTxsForResource =
+          (resourceStates[resource.id].effectiveMaxThroughput * timestep) /
+          consumption;
 
-      for (const [resourceId, amount] of Object.entries(consumption)) {
-        if (resourceStates[resourceId]) {
-          const maxTxsForResource =
-            (resourceStates[resourceId].effectiveMaxThroughput * timestep) / amount;
+        const remainingCapacity =
+          maxTxsForResource -
+          resourceStates[resource.id].currentThroughput /
+            (consumption / timestep);
 
-          const remainingCapacity =
-            maxTxsForResource -
-            resourceStates[resourceId].currentThroughput / (amount / timestep);
-
-          executableTxCount = Math.min(executableTxCount, remainingCapacity);
-        }
+        executableTxCount = Math.min(executableTxCount, remainingCapacity);
       }
+    }
 
-      executableTxCount = Math.max(0, executableTxCount);
+    executableTxCount = Math.max(0, executableTxCount);
 
-      // Update resource consumption
-      for (const [resourceId, amount] of Object.entries(consumption)) {
-        if (resourceStates[resourceId]) {
-          const used = amount * executableTxCount;
-          resourceStates[resourceId].currentThroughput += used / timestep;
-        }
-      }
-    } else {
-      // Legacy path
-      for (const resource of resources) {
-        const consumption = getResourceConsumption(txType, resource, techStack);
-        if (consumption > 0) {
-          const maxTxsForResource =
-            (resourceStates[resource.id].effectiveMaxThroughput * timestep) /
-            consumption;
-
-          const remainingCapacity =
-            maxTxsForResource -
-            resourceStates[resource.id].currentThroughput /
-              (consumption / timestep);
-
-          executableTxCount = Math.min(executableTxCount, remainingCapacity);
-        }
-      }
-
-      executableTxCount = Math.max(0, executableTxCount);
-
-      // Update resource consumption (legacy)
-      for (const resource of resources) {
-        const consumption = getResourceConsumption(txType, resource, techStack);
-        const used = consumption * executableTxCount;
-        resourceStates[resource.id].currentThroughput += used / timestep;
-      }
+    // Update resource consumption
+    for (const resource of resources) {
+      const consumption = getResourceConsumption(txType, resource.id);
+      const used = consumption * executableTxCount;
+      resourceStates[resource.id].currentThroughput += used / timestep;
     }
 
     // Track transactions
@@ -309,8 +252,7 @@ function simulationStep(
 export function runSimulation(config: SimulationConfig): SimulationResult {
   const snapshots: SimulationSnapshot[] = [];
 
-  // Compose resources from tech stack
-  const resources = composeResources(config.techStack, config.resources);
+  const resources = config.resources;
 
   // Initial state
   const initialResourceStates: Record<string, ResourceState> = {};
@@ -320,7 +262,7 @@ export function runSimulation(config: SimulationConfig): SimulationResult {
       currentThroughput: 0,
       utilization: 0,
       backpressure: 0,
-      effectiveMaxThroughput: getEffectiveMaxThroughput(resource, config.techStack),
+      effectiveMaxThroughput: getEffectiveMaxThroughput(resource, config.scalingSolutions),
     };
   }
 
@@ -376,7 +318,7 @@ function calculateSummary(
   }
 
   // Find bottleneck (resource with highest average utilization)
-  let bottleneckResource = resources[0]?.id || '';
+  let bottleneckResource: string = resources[0]?.id || '';
   let maxAvgUtil = 0;
   for (const [resourceId, util] of Object.entries(avgUtilization)) {
     if (util > maxAvgUtil) {
@@ -425,23 +367,20 @@ function standardDeviation(values: number[]): number {
 export function estimateTPS(
   resources: Resource[],
   transactionTypes: TransactionType[],
-  techStack: Tech[]
+  scalingSolutions: ScalingSolution[]
 ): number {
-  // Compose resources from tech stack
-  const composedResources = composeResources(techStack, resources);
-
   // For each resource, calculate max TPS based on that resource
   const tpsPerResource: Record<string, number> = {};
 
-  for (const resource of composedResources) {
-    const effectiveMax = getEffectiveMaxThroughput(resource, techStack);
+  for (const resource of resources) {
+    const effectiveMax = getEffectiveMaxThroughput(resource, scalingSolutions);
 
     // Calculate weighted average consumption across transaction types
     let totalConsumption = 0;
     let totalWeight = 0;
 
     for (const txType of transactionTypes) {
-      const consumption = getResourceConsumption(txType, resource, techStack);
+      const consumption = getResourceConsumption(txType, resource.id);
       const weight = txType.percentOfMainnetTxs;
 
       if (consumption > 0) {

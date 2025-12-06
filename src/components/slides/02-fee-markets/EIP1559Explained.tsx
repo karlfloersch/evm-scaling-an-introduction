@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { SlideContainer, SlideHeader, AnimatedText } from '@/components/ui/SlideContainer';
 import {
@@ -10,9 +10,282 @@ import {
   generateUtilization,
   calculateStats,
   type SimulationState,
-  type Block,
   DEFAULT_CONFIG,
 } from '@/lib/simulation/eip1559';
+
+// Supply/Demand chart component
+function SupplyDemandChart({
+  demandLevel,
+  currentBaseFee,
+  currentUtilization,
+}: {
+  demandLevel: number;
+  currentBaseFee: number;
+  currentUtilization: number;
+}) {
+  const width = 300;
+  const height = 200;
+  const padding = { top: 20, right: 20, bottom: 30, left: 50 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  // Scale parameters
+  const maxPrice = Math.max(100, currentBaseFee * 1.5);
+  const targetSupply = 0.5; // 50% target
+
+  // Generate demand curve points - shifts based on demandLevel
+  const demandCurve = useMemo(() => {
+    const points: { x: number; y: number }[] = [];
+    // Demand curve: P = basePrice * e^(-k*Q) shifted by demand level
+    // Higher demand = curve shifts right (higher prices at same quantity)
+    const basePrice = 20 + demandLevel * 120; // Base intercept price
+    const steepness = 2 + demandLevel * 2; // How steep the curve is
+
+    for (let q = 0; q <= 1; q += 0.02) {
+      // Exponential decay demand curve
+      const price = basePrice * Math.exp(-steepness * q);
+      points.push({ x: q, y: price });
+    }
+    return points;
+  }, [demandLevel]);
+
+  // Find intersection with supply (at target = 0.5)
+  const intersectionPrice = useMemo(() => {
+    const basePrice = 20 + demandLevel * 120;
+    const steepness = 2 + demandLevel * 2;
+    return basePrice * Math.exp(-steepness * targetSupply);
+  }, [demandLevel]);
+
+  // Convert data coordinates to SVG coordinates
+  const toSvgX = (q: number) => padding.left + q * chartWidth;
+  const toSvgY = (p: number) => padding.top + chartHeight - (p / maxPrice) * chartHeight;
+
+  // Build demand curve path
+  const demandPath = demandCurve
+    .map((pt, i) => `${i === 0 ? 'M' : 'L'} ${toSvgX(pt.x)} ${toSvgY(Math.min(pt.y, maxPrice))}`)
+    .join(' ');
+
+  return (
+    <svg width={width} height={height} className="w-full h-auto">
+      {/* Grid lines */}
+      {[0.25, 0.5, 0.75, 1].map((q) => (
+        <line
+          key={`grid-v-${q}`}
+          x1={toSvgX(q)}
+          y1={padding.top}
+          x2={toSvgX(q)}
+          y2={padding.top + chartHeight}
+          stroke="rgba(255,255,255,0.1)"
+          strokeDasharray="2,2"
+        />
+      ))}
+      {[0.25, 0.5, 0.75].map((p) => (
+        <line
+          key={`grid-h-${p}`}
+          x1={padding.left}
+          y1={toSvgY(p * maxPrice)}
+          x2={padding.left + chartWidth}
+          y2={toSvgY(p * maxPrice)}
+          stroke="rgba(255,255,255,0.1)"
+          strokeDasharray="2,2"
+        />
+      ))}
+
+      {/* Axes */}
+      <line
+        x1={padding.left}
+        y1={padding.top + chartHeight}
+        x2={padding.left + chartWidth}
+        y2={padding.top + chartHeight}
+        stroke="rgba(255,255,255,0.3)"
+      />
+      <line
+        x1={padding.left}
+        y1={padding.top}
+        x2={padding.left}
+        y2={padding.top + chartHeight}
+        stroke="rgba(255,255,255,0.3)"
+      />
+
+      {/* Supply line (horizontal at target capacity) */}
+      <line
+        x1={padding.left}
+        y1={toSvgY(0)}
+        x2={toSvgX(targetSupply)}
+        y2={toSvgY(0)}
+        stroke="#22c55e"
+        strokeWidth={2}
+      />
+      <line
+        x1={toSvgX(targetSupply)}
+        y1={padding.top}
+        x2={toSvgX(targetSupply)}
+        y2={padding.top + chartHeight}
+        stroke="#22c55e"
+        strokeWidth={2}
+        strokeDasharray="4,4"
+      />
+
+      {/* Demand curve */}
+      <motion.path
+        d={demandPath}
+        fill="none"
+        stroke="#f59e0b"
+        strokeWidth={2}
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.5 }}
+      />
+
+      {/* Intersection point - animates position */}
+      <motion.circle
+        r={6}
+        fill="#ef4444"
+        stroke="white"
+        strokeWidth={2}
+        initial={{ cx: toSvgX(targetSupply), cy: toSvgY(intersectionPrice) }}
+        animate={{
+          cx: toSvgX(targetSupply),
+          cy: toSvgY(Math.min(intersectionPrice, maxPrice))
+        }}
+        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+      />
+
+      {/* Dotted line from intersection to Y-axis (showing price) */}
+      <motion.line
+        x1={padding.left}
+        x2={toSvgX(targetSupply)}
+        stroke="#ef4444"
+        strokeWidth={1}
+        strokeDasharray="3,3"
+        initial={{ y1: toSvgY(intersectionPrice), y2: toSvgY(intersectionPrice) }}
+        animate={{
+          y1: toSvgY(Math.min(intersectionPrice, maxPrice)),
+          y2: toSvgY(Math.min(intersectionPrice, maxPrice))
+        }}
+        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+      />
+
+      {/* Surplus/Deficit shaded area */}
+      {currentUtilization !== targetSupply && (
+        <motion.rect
+          x={Math.min(toSvgX(currentUtilization), toSvgX(targetSupply))}
+          y={padding.top}
+          width={Math.abs(toSvgX(currentUtilization) - toSvgX(targetSupply))}
+          height={chartHeight}
+          fill={currentUtilization < targetSupply ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
+      )}
+
+      {/* Surplus/Deficit label */}
+      {currentUtilization !== targetSupply && (
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <text
+            x={(toSvgX(currentUtilization) + toSvgX(targetSupply)) / 2}
+            y={padding.top + chartHeight / 2 - 8}
+            fill={currentUtilization < targetSupply ? '#22c55e' : '#ef4444'}
+            fontSize={10}
+            fontWeight="bold"
+            textAnchor="middle"
+          >
+            {currentUtilization < targetSupply ? 'SURPLUS' : 'DEFICIT'}
+          </text>
+          <text
+            x={(toSvgX(currentUtilization) + toSvgX(targetSupply)) / 2}
+            y={padding.top + chartHeight / 2 + 5}
+            fill={currentUtilization < targetSupply ? '#22c55e' : '#ef4444'}
+            fontSize={8}
+            textAnchor="middle"
+          >
+            {currentUtilization < targetSupply ? '(price will drop)' : '(price will rise)'}
+          </text>
+        </motion.g>
+      )}
+
+      {/* Current utilization line (vertical) */}
+      <motion.line
+        x1={toSvgX(currentUtilization)}
+        y1={padding.top}
+        x2={toSvgX(currentUtilization)}
+        y2={padding.top + chartHeight}
+        stroke="#60a5fa"
+        strokeWidth={2}
+        strokeDasharray="3,3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      />
+
+      {/* Current utilization marker on x-axis */}
+      <motion.line
+        x1={toSvgX(currentUtilization)}
+        y1={padding.top + chartHeight - 8}
+        x2={toSvgX(currentUtilization)}
+        y2={padding.top + chartHeight}
+        stroke="#60a5fa"
+        strokeWidth={4}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      />
+
+      {/* Actual utilization label */}
+      <text
+        x={toSvgX(currentUtilization)}
+        y={padding.top + chartHeight + 22}
+        fill="#60a5fa"
+        fontSize={8}
+        textAnchor="middle"
+      >
+        Actual: {(currentUtilization * 100).toFixed(0)}%
+      </text>
+
+      {/* Labels */}
+      <text x={padding.left + chartWidth / 2} y={height - 5} fill="rgba(255,255,255,0.5)" fontSize={10} textAnchor="middle">
+        Gas Usage
+      </text>
+      <text x={12} y={padding.top + chartHeight / 2} fill="rgba(255,255,255,0.5)" fontSize={10} textAnchor="middle" transform={`rotate(-90, 12, ${padding.top + chartHeight / 2})`}>
+        Price (gwei)
+      </text>
+
+      {/* Supply label */}
+      <text x={toSvgX(targetSupply) + 5} y={padding.top + 15} fill="#22c55e" fontSize={9}>
+        Supply
+      </text>
+      <text x={toSvgX(targetSupply) + 5} y={padding.top + 25} fill="#22c55e" fontSize={8}>
+        (target)
+      </text>
+
+      {/* Demand label */}
+      <text x={toSvgX(0.05)} y={toSvgY(demandCurve[2]?.y || 50) - 5} fill="#f59e0b" fontSize={9}>
+        Demand
+      </text>
+
+      {/* Equilibrium price label */}
+      <motion.text
+        x={padding.left + 3}
+        fill="#ef4444"
+        fontSize={9}
+        fontWeight="bold"
+        initial={{ y: toSvgY(intersectionPrice) - 5 }}
+        animate={{ y: toSvgY(Math.min(intersectionPrice, maxPrice)) - 5 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+      >
+        {intersectionPrice.toFixed(0)}
+      </motion.text>
+
+      {/* Axis tick labels */}
+      <text x={toSvgX(0)} y={padding.top + chartHeight + 12} fill="rgba(255,255,255,0.4)" fontSize={8} textAnchor="middle">0%</text>
+      <text x={toSvgX(0.5)} y={padding.top + chartHeight + 12} fill="rgba(255,255,255,0.4)" fontSize={8} textAnchor="middle">50%</text>
+      <text x={toSvgX(1)} y={padding.top + chartHeight + 12} fill="rgba(255,255,255,0.4)" fontSize={8} textAnchor="middle">100%</text>
+    </svg>
+  );
+}
 
 export function EIP1559ExplainedSlide() {
   const [state, setState] = useState<SimulationState>(() => createInitialState());
@@ -21,6 +294,11 @@ export function EIP1559ExplainedSlide() {
 
   // Get recent blocks for display (last 20)
   const displayBlocks = state.blocks.slice(-20);
+
+  // Current utilization for the chart
+  const currentUtilization = displayBlocks.length > 0
+    ? displayBlocks[displayBlocks.length - 1].utilization
+    : 0.5;
 
   const simulateBlock = useCallback(() => {
     setState(currentState => {
@@ -164,43 +442,24 @@ export function EIP1559ExplainedSlide() {
               </div>
             </div>
 
-            {/* Block visualization */}
+            {/* Supply/Demand Chart */}
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-gray-500">
-                <span>Block Utilization (last 20 blocks)</span>
-                <span>Target: 50%</span>
+                <span>Supply &amp; Demand</span>
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full" /> Supply
+                  <span className="inline-block w-2 h-2 bg-amber-500 rounded-full" /> Demand
+                </span>
               </div>
-              <div className="h-32 flex items-end gap-1 relative">
-                {/* Target line at 50% */}
-                <div
-                  className="absolute w-full border-t border-dashed border-yellow-500/50 pointer-events-none"
-                  style={{ bottom: '50%' }}
+              <div className="bg-black/20 rounded-lg p-2">
+                <SupplyDemandChart
+                  demandLevel={demandLevel}
+                  currentBaseFee={state.currentBaseFee}
+                  currentUtilization={currentUtilization}
                 />
-                {displayBlocks.length === 0 ? (
-                  <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-                    Click &quot;Start&quot; to begin simulation
-                  </div>
-                ) : (
-                  displayBlocks.map((block, i) => (
-                    <motion.div
-                      key={block.number}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${block.utilization * 100}%` }}
-                      className="flex-1 rounded-t relative"
-                      style={{
-                        backgroundColor: block.utilization > 0.5
-                          ? `rgba(239, 68, 68, ${0.3 + block.utilization * 0.5})`
-                          : `rgba(34, 197, 94, ${0.3 + (1 - block.utilization) * 0.3})`,
-                      }}
-                    >
-                      {i === displayBlocks.length - 1 && (
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white whitespace-nowrap">
-                          {(block.utilization * 100).toFixed(0)}%
-                        </div>
-                      )}
-                    </motion.div>
-                  ))
-                )}
+              </div>
+              <div className="text-xs text-gray-500 text-center">
+                The red dot shows the equilibrium price where supply meets demand
               </div>
             </div>
 

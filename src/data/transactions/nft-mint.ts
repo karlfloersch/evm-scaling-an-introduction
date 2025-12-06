@@ -26,10 +26,14 @@ export const nftMint: TransactionType = {
   },
 
   resourceConsumption: {
-    'cpu-gas': 100000,
-    'state-reads': 5,
-    'state-writes': 4,
-    'verification': 1,
+    'evm-compute': 0.1,          // 100,000 gas = 0.1 Mgas
+    'state-access': 200,         // Token creation, ownership mapping - moderate I/O
+    'merklization': 16,          // Multiple storage updates + token creation
+    'block-verification': 0.1,   // Same as compute
+    'block-distribution': 0.5,   // ~500 bytes (includes metadata)
+    'state-growth': 0.25,        // New token storage slot created
+    'history-growth': 0.5,       // ~500 bytes in history
+    'proof-generation': 0.1,     // Same as compute
   },
 
   baseDemand: 2,
@@ -40,6 +44,8 @@ export const nftMint: TransactionType = {
   percentOfMainnetTxs: 5,
 
   color: '#9775FA',
+
+  feeGwei: 100,  // High fee - will pay premium for popular drops
 
   notes: 'NFT mints from the same collection conflict on the supply counter. This is why NFT drops cause congestion even with parallelism.',
 };
@@ -70,10 +76,14 @@ export const nftTransfer: TransactionType = {
   },
 
   resourceConsumption: {
-    'cpu-gas': 80000,
-    'state-reads': 4,
-    'state-writes': 3,
-    'verification': 1,
+    'evm-compute': 0.08,         // 80,000 gas = 0.08 Mgas
+    'state-access': 150,         // Ownership mapping updates - moderate I/O
+    'merklization': 12,          // Storage updates
+    'block-verification': 0.08,  // Same as compute
+    'block-distribution': 0.3,   // ~300 bytes tx data
+    'state-growth': 0,           // No new state (just ownership change)
+    'history-growth': 0.3,       // ~300 bytes in history
+    'proof-generation': 0.08,    // Same as compute
   },
 
   baseDemand: 3,
@@ -84,6 +94,8 @@ export const nftTransfer: TransactionType = {
   percentOfMainnetTxs: 3,
 
   color: '#CE93D8',
+
+  feeGwei: 50,  // Moderate fee - less time-sensitive than mints
 
   notes: 'Unlike mints, NFT transfers of different tokens can run in parallel.',
 };

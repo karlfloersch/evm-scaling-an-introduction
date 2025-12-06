@@ -43,35 +43,42 @@ function DemandCurveChartInner({
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
-  // Scales
+  // Calculate fixed X-axis max based on transaction type properties
+  // This keeps the axis stable during volatility animations
+  const maxPossibleDemand = useMemo(() => {
+    // Calculate max demand at lowest price (10 gwei) with max volatility
+    const minPrice = 10;
+    const referencePrice = 50;
+    const maxVolatilityFactor = 1 + transactionType.demandVolatility;
+    const elasticityPower = 0.5 + transactionType.priceElasticity * 1.5;
+    const maxDemand = transactionType.baseDemand * maxVolatilityFactor * Math.pow(referencePrice / minPrice, elasticityPower);
+    return maxDemand * 1.1; // 10% padding
+  }, [transactionType]);
+
+  const maxPrice = useMemo(
+    () => Math.max(...demandCurve.map((d) => d.price)),
+    [demandCurve]
+  );
+
+  // Scales - Standard economics convention: X = Quantity, Y = Price
   const xScale = useMemo(
     () =>
       scaleLinear<number>({
-        domain: [0, Math.max(...demandCurve.map((d) => d.price))],
+        domain: [0, maxPossibleDemand],
         range: [0, xMax],
         nice: true,
       }),
-    [demandCurve, xMax]
+    [maxPossibleDemand, xMax]
   );
-
-  // Calculate fixed Y-axis max based on transaction type's max possible demand
-  // This keeps the axis stable while the curve moves
-  const maxPossibleDemand = useMemo(() => {
-    // Max volatility factor is (1 + demandVolatility)
-    // At price 0, demand is highest
-    const maxVolatilityFactor = 1 + transactionType.demandVolatility;
-    const baseDemandAtZeroPrice = transactionType.baseDemand * maxVolatilityFactor;
-    return baseDemandAtZeroPrice * 1.2; // 20% padding
-  }, [transactionType]);
 
   const yScale = useMemo(
     () =>
       scaleLinear<number>({
-        domain: [0, maxPossibleDemand],
+        domain: [0, maxPrice],
         range: [yMax, 0],
         nice: true,
       }),
-    [maxPossibleDemand, yMax]
+    [maxPrice, yMax]
   );
 
   // Current demand at current price
@@ -110,47 +117,47 @@ function DemandCurveChartInner({
           </>
         )}
 
-        {/* Area under curve */}
+        {/* Area under curve - X = Quantity, Y = Price */}
         <AreaClosed<DemandPoint>
           data={demandCurve}
-          x={(d) => xScale(d.price)}
-          y={(d) => yScale(d.quantity)}
+          x={(d) => xScale(d.quantity)}
+          y={(d) => yScale(d.price)}
           yScale={yScale}
           curve={curveMonotoneX}
           fill={transactionType.color}
           fillOpacity={0.2}
         />
 
-        {/* Demand curve line */}
+        {/* Demand curve line - X = Quantity, Y = Price */}
         <LinePath<DemandPoint>
           data={demandCurve}
-          x={(d) => xScale(d.price)}
-          y={(d) => yScale(d.quantity)}
+          x={(d) => xScale(d.quantity)}
+          y={(d) => yScale(d.price)}
           stroke={transactionType.color}
           strokeWidth={2}
           curve={curveMonotoneX}
         />
 
-        {/* Current price indicator */}
+        {/* Current price indicator - X = Quantity, Y = Price */}
         {currentPrice !== undefined && currentDemand !== undefined && (
           <>
-            {/* Vertical line at current price */}
+            {/* Horizontal line at current price (from Y-axis to intersection) */}
             <line
-              x1={xScale(currentPrice)}
-              y1={0}
-              x2={xScale(currentPrice)}
-              y2={yMax}
+              x1={0}
+              y1={yScale(currentPrice)}
+              x2={xScale(currentDemand)}
+              y2={yScale(currentPrice)}
               stroke="white"
               strokeWidth={1}
               strokeDasharray="4,4"
               opacity={0.5}
             />
-            {/* Horizontal line at current demand */}
+            {/* Vertical line at current demand (from X-axis to intersection) */}
             <line
-              x1={0}
-              y1={yScale(currentDemand)}
-              x2={xScale(currentPrice)}
-              y2={yScale(currentDemand)}
+              x1={xScale(currentDemand)}
+              y1={yMax}
+              x2={xScale(currentDemand)}
+              y2={yScale(currentPrice)}
               stroke="white"
               strokeWidth={1}
               strokeDasharray="4,4"
@@ -158,8 +165,8 @@ function DemandCurveChartInner({
             />
             {/* Point at intersection */}
             <circle
-              cx={xScale(currentPrice)}
-              cy={yScale(currentDemand)}
+              cx={xScale(currentDemand)}
+              cy={yScale(currentPrice)}
               r={6}
               fill="white"
               stroke={transactionType.color}
@@ -167,17 +174,17 @@ function DemandCurveChartInner({
             />
             {/* Label */}
             <text
-              x={xScale(currentPrice) + 10}
-              y={yScale(currentDemand) - 10}
+              x={xScale(currentDemand) + 10}
+              y={yScale(currentPrice) - 10}
               fill="white"
               fontSize={12}
             >
-              {currentDemand.toFixed(1)} TPS
+              {currentDemand.toFixed(1)} TPS @ {currentPrice} gwei
             </text>
           </>
         )}
 
-        {/* Axes */}
+        {/* Axes - Standard economics convention: X = Quantity, Y = Price */}
         {showAxis && (
           <>
             <AxisBottom
@@ -190,7 +197,7 @@ function DemandCurveChartInner({
                 fontSize: 11,
                 textAnchor: 'middle',
               })}
-              label="Price (gwei)"
+              label="Quantity (TPS)"
               labelProps={{
                 fill: 'rgba(255,255,255,0.7)',
                 fontSize: 12,
@@ -208,7 +215,7 @@ function DemandCurveChartInner({
                 dx: -4,
                 dy: 4,
               })}
-              label="Demand (TPS)"
+              label="Price (gwei)"
               labelProps={{
                 fill: 'rgba(255,255,255,0.7)',
                 fontSize: 12,

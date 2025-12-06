@@ -25,10 +25,14 @@ export const ethTransfer: TransactionType = {
   },
 
   resourceConsumption: {
-    'cpu-gas': 21000,
-    'state-reads': 2,
-    'state-writes': 2,
-    'verification': 1,
+    'evm-compute': 0.021,        // 21,000 gas = 0.021 Mgas
+    'state-access': 100,         // Account reads/writes with some I/O overhead
+    'merklization': 4,           // 2 account updates (2 hashes each)
+    'block-verification': 0.021, // Same as compute for re-execution
+    'block-distribution': 0.00011, // ~110 bytes tx data = 0.00011 MB
+    'state-growth': 0,           // No new state created
+    'history-growth': 0.11,      // ~110 bytes in history (KB)
+    'proof-generation': 0.021,   // Same as compute
   },
 
   baseDemand: 20,
@@ -39,6 +43,8 @@ export const ethTransfer: TransactionType = {
   percentOfMainnetTxs: 25,
 
   color: '#4DABF7',
+
+  feeGwei: 30,  // Moderate fee - basic utility
 
   notes: 'The benchmark favorite - simple transfers touch random slots so they parallelize perfectly. This is why 100% transfer benchmarks show inflated TPS.',
 };

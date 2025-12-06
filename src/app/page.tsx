@@ -12,32 +12,40 @@ import { TheProblemSlide, WhatWeWillBuildSlide } from '@/components/slides/00-in
 import {
   ResourcesIntroSlide,
   TransactionsIntroSlide,
-  DemandCurvesIntroSlide,
+  BlockPackingSlide,
 } from '@/components/slides/01-the-model';
 import {
   FeeMarketsIntroSlide,
-  EIP1559ExplainedSlide,
+  MarketClearingPriceSlide,
+  BottleneckSlide,
+  MultidimensionalFeesSlide,
 } from '@/components/slides/02-fee-markets';
-import {
-  ScalingSolutionsIntroSlide,
-  ParallelExecutionSlide,
-  TechComparisonSlide,
-} from '@/components/slides/03-scaling-solutions';
+import { ScalingMatrixSlide, ResourceGrowthSlide } from '@/components/slides/03-scaling-solutions';
 import { SimulationSlide } from '@/components/slides/04-simulation';
+import { PumpYourNumbersSlide } from '@/components/slides/05-pump-your-numbers';
+import { ProjectsSlide } from '@/components/slides/06-projects';
 
 // Slide definitions for navigation
+// Order: Introduction -> The Model -> Scaling Solutions -> Fee Markets -> Simulation
 const slideDefinitions = [
   { id: 'the-problem', title: 'The Problem', section: 'Introduction', sectionIndex: 0, slideIndex: 0 },
   { id: 'what-we-will-build', title: 'What We\'ll Build', section: 'Introduction', sectionIndex: 0, slideIndex: 1 },
+  // The Model: resources, transactions, block packing
   { id: 'resources-intro', title: 'Resources', section: 'The Model', sectionIndex: 1, slideIndex: 0 },
   { id: 'transactions-intro', title: 'Transactions', section: 'The Model', sectionIndex: 1, slideIndex: 1 },
-  { id: 'demand-curves-intro', title: 'Demand Curves', section: 'The Model', sectionIndex: 1, slideIndex: 2 },
-  { id: 'fee-markets-intro', title: 'The Allocation Problem', section: 'Fee Markets', sectionIndex: 2, slideIndex: 0 },
-  { id: 'eip1559-explained', title: 'EIP-1559', section: 'Fee Markets', sectionIndex: 2, slideIndex: 1 },
-  { id: 'scaling-solutions-intro', title: 'What is Scaling?', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 0 },
-  { id: 'parallel-execution', title: 'Parallel Execution', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 1 },
-  { id: 'tech-comparison', title: 'Tech Comparison', section: 'Scaling Solutions', sectionIndex: 3, slideIndex: 2 },
+  { id: 'block-packing', title: 'Block Packing', section: 'The Model', sectionIndex: 1, slideIndex: 2 },
+  // Scaling Solutions
+  { id: 'resource-growth', title: 'Growing the Bars', section: 'Scaling Solutions', sectionIndex: 2, slideIndex: 0 },
+  { id: 'scaling-matrix', title: 'Scaling Matrix', section: 'Scaling Solutions', sectionIndex: 2, slideIndex: 1 },
+  // Fee Markets
+  { id: 'fee-markets-intro', title: 'Scaling Isn\'t Enough', section: 'Fee Markets', sectionIndex: 3, slideIndex: 0 },
+  { id: 'market-clearing-price', title: 'Market Clearing Price', section: 'Fee Markets', sectionIndex: 3, slideIndex: 1 },
+  { id: 'bottleneck-problem', title: 'The Bottleneck', section: 'Fee Markets', sectionIndex: 3, slideIndex: 2 },
+  { id: 'multidimensional-fees', title: 'Multi-Dimensional Fees', section: 'Fee Markets', sectionIndex: 3, slideIndex: 3 },
+  // Interactive sections
   { id: 'simulation-dashboard', title: 'TPS Simulator', section: 'Interactive Simulation', sectionIndex: 4, slideIndex: 0 },
+  { id: 'pump-your-numbers', title: 'Pump Your Numbers', section: 'The Game', sectionIndex: 5, slideIndex: 0 },
+  { id: 'projects-comparison', title: 'Project Comparison', section: 'Real World', sectionIndex: 6, slideIndex: 0 },
 ];
 
 export default function Home() {
@@ -131,19 +139,26 @@ export default function Home() {
       {/* The Model Slides */}
       <ResourcesIntroSlide />
       <TransactionsIntroSlide />
-      <DemandCurvesIntroSlide />
+      <BlockPackingSlide />
+
+      {/* Scaling Solutions Slides */}
+      <ResourceGrowthSlide />
+      <ScalingMatrixSlide />
 
       {/* Fee Markets Slides */}
       <FeeMarketsIntroSlide />
-      <EIP1559ExplainedSlide />
-
-      {/* Scaling Solutions Slides */}
-      <ScalingSolutionsIntroSlide />
-      <ParallelExecutionSlide />
-      <TechComparisonSlide />
+      <MarketClearingPriceSlide />
+      <BottleneckSlide />
+      <MultidimensionalFeesSlide />
 
       {/* Interactive Simulation */}
       <SimulationSlide />
+
+      {/* Pump Your Numbers Game */}
+      <PumpYourNumbersSlide />
+
+      {/* Project Comparison */}
+      <ProjectsSlide />
 
       {/* Coming Soon placeholder */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6">

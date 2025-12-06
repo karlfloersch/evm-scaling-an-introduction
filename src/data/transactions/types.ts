@@ -66,6 +66,12 @@ export interface TransactionType {
 
   /** Additional notes */
   notes?: string;
+
+  /**
+   * Fee in gwei that this transaction type typically pays
+   * Used for demonstrating fee market dynamics
+   */
+  feeGwei?: number;
 }
 
 /**
@@ -199,22 +205,30 @@ export interface DemandPoint {
 
 /**
  * Generate demand curve for a transaction type at a given time
+ *
+ * Uses an inverse/hyperbolic function so demand approaches infinity as price → 0
+ * This reflects reality: if transactions were free, demand would be infinite
  */
 export function generateDemandCurve(
   txType: TransactionType,
   timestamp: number,
-  pricePoints: number[] = [0, 10, 25, 50, 100, 200, 500, 1000]
+  pricePoints: number[] = [10, 20, 35, 50, 75, 100, 150, 200, 300, 500]
 ): DemandPoint[] {
   // Add time-based volatility
   const volatilityFactor = 1 + (Math.sin(timestamp * 0.1) * txType.demandVolatility);
 
-  return pricePoints.map((price) => {
-    // Calculate demand at this price point
-    // Higher price = lower demand (based on elasticity)
-    const priceImpact = Math.exp(-price * txType.priceElasticity * 0.01);
-    const quantity = txType.baseDemand * volatilityFactor * priceImpact;
+  // Reference price where demand equals baseDemand
+  const referencePrice = 50;
 
-    return { price, quantity: Math.max(0, quantity) };
+  return pricePoints.map((price) => {
+    // Hyperbolic demand curve: Q = baseDemand * (referencePrice / price)^elasticity
+    // As price → 0, demand → infinity (asymptotic behavior)
+    // At referencePrice, demand = baseDemand
+    // Higher elasticity = steeper curve
+    const elasticityPower = 0.5 + txType.priceElasticity * 1.5; // Range: 0.5 to 2.0
+    const quantity = txType.baseDemand * volatilityFactor * Math.pow(referencePrice / price, elasticityPower);
+
+    return { price, quantity };
   });
 }
 

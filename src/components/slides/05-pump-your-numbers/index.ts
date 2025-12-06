@@ -1,0 +1,1 @@
+export { PumpYourNumbersSlide } from './PumpYourNumbersSlide';

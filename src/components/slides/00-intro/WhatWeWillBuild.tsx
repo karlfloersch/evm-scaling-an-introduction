@@ -8,20 +8,20 @@ export function WhatWeWillBuildSlide() {
     {
       number: '1',
       title: 'The Model',
-      description: 'Resources, transactions, and demand curves',
+      description: 'Resources, transactions, and block packing',
       color: '#4DABF7',
     },
     {
       number: '2',
-      title: 'Fee Markets',
-      description: 'How EIP-1559 works and optimal pricing',
-      color: '#69DB7C',
+      title: 'Scaling Solutions',
+      description: 'Different ways to grow the bars',
+      color: '#FFA94D',
     },
     {
       number: '3',
-      title: 'Scaling Solutions',
-      description: 'What each approach actually does',
-      color: '#FFA94D',
+      title: 'Fee Markets',
+      description: 'Why scaling alone isn\'t enough',
+      color: '#69DB7C',
     },
     {
       number: '4',
