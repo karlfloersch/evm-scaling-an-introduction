@@ -17,6 +17,8 @@ import {
 import {
   FeeMarketsIntroSlide,
   MarketClearingPriceSlide,
+  DemandCurvesIntroSlide,
+  EIP1559ExplainedSlide,
   BottleneckSlide,
   MultidimensionalFeesSlide,
 } from '@/components/slides/02-fee-markets';
@@ -40,8 +42,10 @@ const slideDefinitions = [
   // Fee Markets
   { id: 'fee-markets-intro', title: 'Scaling Isn\'t Enough', section: 'Fee Markets', sectionIndex: 3, slideIndex: 0 },
   { id: 'market-clearing-price', title: 'Market Clearing Price', section: 'Fee Markets', sectionIndex: 3, slideIndex: 1 },
-  { id: 'bottleneck-problem', title: 'The Bottleneck', section: 'Fee Markets', sectionIndex: 3, slideIndex: 2 },
-  { id: 'multidimensional-fees', title: 'Multi-Dimensional Fees', section: 'Fee Markets', sectionIndex: 3, slideIndex: 3 },
+  { id: 'demand-curves-intro', title: 'Demand Curves', section: 'Fee Markets', sectionIndex: 3, slideIndex: 2 },
+  { id: 'eip1559-explained', title: 'EIP-1559', section: 'Fee Markets', sectionIndex: 3, slideIndex: 3 },
+  { id: 'bottleneck-problem', title: 'The Bottleneck', section: 'Fee Markets', sectionIndex: 3, slideIndex: 4 },
+  { id: 'multidimensional-fees', title: 'Multi-Dimensional Fees', section: 'Fee Markets', sectionIndex: 3, slideIndex: 5 },
   // Interactive sections
   { id: 'simulation-dashboard', title: 'TPS Simulator', section: 'Interactive Simulation', sectionIndex: 4, slideIndex: 0 },
   { id: 'pump-your-numbers', title: 'Pump Your Numbers', section: 'The Game', sectionIndex: 5, slideIndex: 0 },
@@ -148,6 +152,8 @@ export default function Home() {
       {/* Fee Markets Slides */}
       <FeeMarketsIntroSlide />
       <MarketClearingPriceSlide />
+      <DemandCurvesIntroSlide />
+      <EIP1559ExplainedSlide />
       <BottleneckSlide />
       <MultidimensionalFeesSlide />
 
