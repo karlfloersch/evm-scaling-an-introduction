@@ -1,310 +1,116 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SlideContainer, SlideHeader, AnimatedText } from '@/components/ui/SlideContainer';
 
-interface Project {
-  id: string;
-  name: string;
-  category: 'L1' | 'L2' | 'Alt-L1';
-  vm: string;
-  scalingTech: string[];
-  claimedTps: string;
-  realisticTps: string;
-  parallelism: string;
-  tradeoffs: string[];
-  color: string;
-}
-
-const projects: Project[] = [
-  {
-    id: 'ethereum',
-    name: 'Ethereum',
-    category: 'L1',
-    vm: 'EVM',
-    scalingTech: ['Sequential execution', 'EIP-1559 fee market'],
-    claimedTps: '~15-30',
-    realisticTps: '~15-30',
-    parallelism: 'None (sequential)',
-    tradeoffs: ['Maximum decentralization', 'Battle-tested security', 'Limited throughput'],
-    color: '#627EEA',
-  },
-  {
-    id: 'solana',
-    name: 'Solana',
-    category: 'Alt-L1',
-    vm: 'SVM (Sealevel)',
-    scalingTech: ['Parallel execution', 'Proof of History', 'Gulf Stream'],
-    claimedTps: '65,000',
-    realisticTps: '~400-700',
-    parallelism: 'Declared access lists',
-    tradeoffs: ['High hardware requirements', 'Newer security model', 'Occasional outages'],
-    color: '#14F195',
-  },
-  {
-    id: 'sui',
-    name: 'Sui',
-    category: 'Alt-L1',
-    vm: 'Move VM',
-    scalingTech: ['Object-centric model', 'Parallel execution', 'Narwhal/Bullshark'],
-    claimedTps: '297,000',
-    realisticTps: '~800-5,000',
-    parallelism: 'Object ownership model',
-    tradeoffs: ['New language (Move)', 'Less battle-tested', 'Different programming model'],
-    color: '#6FBCF0',
-  },
-  {
-    id: 'aptos',
-    name: 'Aptos',
-    category: 'Alt-L1',
-    vm: 'Move VM',
-    scalingTech: ['Block-STM parallel execution', 'Optimistic concurrency'],
-    claimedTps: '160,000',
-    realisticTps: '~900-4,000',
-    parallelism: 'Optimistic + re-execution',
-    tradeoffs: ['New language (Move)', 'Optimistic overhead on conflicts', 'Newer ecosystem'],
-    color: '#2DD8A7',
-  },
-  {
-    id: 'monad',
-    name: 'Monad',
-    category: 'L1',
-    vm: 'EVM (compatible)',
-    scalingTech: ['Optimistic parallel execution', 'MonadBFT', 'Async execution'],
-    claimedTps: '10,000',
-    realisticTps: 'TBD (not live)',
-    parallelism: 'Optimistic + speculation',
-    tradeoffs: ['EVM compatible', 'New consensus', 'Not yet battle-tested'],
-    color: '#836EF9',
-  },
-  {
-    id: 'megaeth',
-    name: 'MegaETH',
-    category: 'L2',
-    vm: 'EVM (compatible)',
-    scalingTech: ['Parallel execution', 'Real-time proving', 'Sequencer specialization'],
-    claimedTps: '100,000+',
-    realisticTps: 'TBD (not live)',
-    parallelism: 'Specialized sequencer',
-    tradeoffs: ['L2 security model', 'Centralized sequencer', 'EVM compatible'],
-    color: '#FF6B6B',
-  },
-  {
-    id: 'arbitrum',
-    name: 'Arbitrum',
-    category: 'L2',
-    vm: 'EVM (compatible)',
-    scalingTech: ['Optimistic rollup', 'Nitro compression', 'Stylus (WASM)'],
-    claimedTps: '~4,000',
-    realisticTps: '~40-250',
-    parallelism: 'Sequential (like Ethereum)',
-    tradeoffs: ['Inherits ETH security', '7-day withdrawal', 'Sequencer centralization'],
-    color: '#28A0F0',
-  },
-  {
-    id: 'optimism',
-    name: 'Optimism',
-    category: 'L2',
-    vm: 'EVM (compatible)',
-    scalingTech: ['Optimistic rollup', 'Bedrock', 'Superchain'],
-    claimedTps: '~2,000',
-    realisticTps: '~20-200',
-    parallelism: 'Sequential (like Ethereum)',
-    tradeoffs: ['Inherits ETH security', '7-day withdrawal', 'Simple & battle-tested'],
-    color: '#FF0420',
-  },
-];
-
 export function ProjectsSlide() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [filter, setFilter] = useState<'all' | 'L1' | 'L2' | 'Alt-L1'>('all');
-
-  const filteredProjects = filter === 'all'
-    ? projects
-    : projects.filter(p => p.category === filter);
-
   return (
     <SlideContainer id="projects-comparison" variant="default">
       <SlideHeader
-        section="Project Comparison"
-        title="How Do They Compare?"
-        subtitle="Different approaches to the same problem"
+        section="What's Next"
+        title="Let's Build Together"
+        subtitle="Now we have a shared mental model"
       />
 
-      {/* Filter Tabs */}
-      <AnimatedText delay={0.1}>
-        <div className="flex gap-2 mb-6">
-          {(['all', 'L1', 'L2', 'Alt-L1'] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                filter === f
-                  ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
-                  : 'bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10'
-              }`}
-            >
-              {f === 'all' ? 'All' : f}
-            </button>
-          ))}
-        </div>
-      </AnimatedText>
-
-      {/* Project Grid */}
-      <AnimatedText delay={0.2}>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {filteredProjects.map(project => (
-            <motion.button
-              key={project.id}
-              onClick={() => setSelectedProject(selectedProject?.id === project.id ? null : project)}
-              className={`p-4 rounded-xl border text-left transition-all ${
-                selectedProject?.id === project.id
-                  ? 'bg-white/10 border-white/30'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10'
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: project.color }}
-                />
-                <span className="font-semibold text-white">{project.name}</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-gray-400">
-                  {project.category}
-                </span>
+      <div className="mt-8 space-y-8 max-w-3xl mx-auto">
+        {/* Shared Mental Model */}
+        <AnimatedText delay={0.1}>
+          <div className="interactive-panel">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                🧠
               </div>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">VM</span>
-                  <span className="text-gray-300">{project.vm}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Claimed</span>
-                  <span className="text-gray-300">{project.claimedTps} TPS</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Realistic</span>
-                  <span className="text-green-400">{project.realisticTps} TPS</span>
-                </div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
-      </AnimatedText>
-
-      {/* Selected Project Details */}
-      {selectedProject && (
-        <AnimatedText delay={0}>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="interactive-panel"
-            style={{ borderColor: `${selectedProject.color}50` }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: selectedProject.color }}
-              />
-              <h3 className="text-xl font-bold text-white">{selectedProject.name}</h3>
-              <span className="text-sm px-2 py-1 rounded bg-white/10 text-gray-400">
-                {selectedProject.category}
-              </span>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Scaling Tech */}
               <div>
-                <h4 className="text-sm font-medium text-gray-400 mb-2">Scaling Technology</h4>
-                <ul className="space-y-1">
-                  {selectedProject.scalingTech.map((tech, i) => (
-                    <li key={i} className="text-sm text-gray-300 flex items-center gap-2">
-                      <span className="text-primary-400">•</span> {tech}
-                    </li>
-                  ))}
-                </ul>
+                <h3 className="text-xl font-semibold text-white mb-2">Shared Mental Model</h3>
+                <p className="text-gray-400 leading-relaxed">
+                  Now that we understand the <span className="text-white font-medium">8 resources</span>,{' '}
+                  <span className="text-white font-medium">scaling tradeoffs</span>, and{' '}
+                  <span className="text-white font-medium">fee market dynamics</span>, we can{' '}
+                  <span className="text-primary-400 font-medium">prioritize and divide & conquer</span>!
+                </p>
               </div>
-
-              {/* Parallelism Approach */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-400 mb-2">Parallelism</h4>
-                <p className="text-sm text-white">{selectedProject.parallelism}</p>
-
-                <h4 className="text-sm font-medium text-gray-400 mt-4 mb-2">VM</h4>
-                <p className="text-sm text-white">{selectedProject.vm}</p>
-              </div>
-
-              {/* Trade-offs */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-400 mb-2">Trade-offs</h4>
-                <ul className="space-y-1">
-                  {selectedProject.tradeoffs.map((tradeoff, i) => (
-                    <li key={i} className="text-sm text-gray-300 flex items-center gap-2">
-                      <span className="text-yellow-400">•</span> {tradeoff}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* TPS Comparison Bar */}
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Claimed TPS</span>
-                    <span className="text-gray-300">{selectedProject.claimedTps}</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full opacity-50"
-                      style={{
-                        backgroundColor: selectedProject.color,
-                        width: '100%'
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-400">Realistic TPS</span>
-                    <span className="text-green-400">{selectedProject.realisticTps}</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 rounded-full"
-                      style={{
-                        width: selectedProject.realisticTps.includes('TBD') ? '10%' : '30%'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatedText>
-      )}
-
-      {/* Key Insight */}
-      <AnimatedText delay={0.4}>
-        <div className="mt-6 interactive-panel bg-primary-500/5 border-primary-500/20">
-          <div className="flex items-start gap-4">
-            <span className="text-2xl">💡</span>
-            <div className="text-sm text-gray-300">
-              <p className="font-semibold text-white mb-1">The Pattern</p>
-              <p>
-                Notice how claimed TPS is often 10-100x higher than realistic TPS? That&apos;s the &quot;Pump Your Numbers&quot; effect.
-                Claimed numbers usually come from simple transfers on optimized hardware. Real-world performance with
-                DeFi transactions, state contention, and decentralization requirements is always lower.
-              </p>
             </div>
           </div>
-        </div>
-      </AnimatedText>
+        </AnimatedText>
+
+        {/* Call to Action */}
+        <AnimatedText delay={0.2}>
+          <div className="interactive-panel bg-primary-500/5 border-primary-500/30">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                💬
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-2">Let's Talk!</h3>
+                <p className="text-gray-400 leading-relaxed mb-4">
+                  I'd love to discuss this stuff with you. Whether you're working on client implementations,
+                  L2 scaling, or fee market research — please reach out!
+                </p>
+                <div className="flex items-center gap-4">
+                  <motion.a
+                    href="https://twitter.com/karl_dot_tech"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-2.5 rounded-lg bg-primary-500 hover:bg-primary-400 text-white font-medium transition-all inline-flex items-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    @karl_dot_tech
+                  </motion.a>
+                  <span className="text-gray-500">— Karl Floersch</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </AnimatedText>
+
+        {/* Special Interest */}
+        <AnimatedText delay={0.3}>
+          <div className="interactive-panel border-amber-500/30 bg-amber-500/5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                ⚡
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-2">Especially Interested In...</h3>
+                <p className="text-gray-400 leading-relaxed">
+                  How can we fix the fee markets so that{' '}
+                  <span className="text-amber-400 font-medium">client software improvements</span> are
+                  reflected in the <span className="text-amber-400 font-medium">transaction fees</span> of
+                  the network?
+                </p>
+                <p className="text-gray-500 text-sm mt-3">
+                  If we can properly price each resource, client teams would be directly rewarded for
+                  their optimization work.
+                </p>
+              </div>
+            </div>
+          </div>
+        </AnimatedText>
+
+        {/* Footer */}
+        <AnimatedText delay={0.4}>
+          <div className="text-center pt-4">
+            <p className="text-gray-500 text-sm">
+              Built with 💜 for the Ethereum community
+            </p>
+            <motion.a
+              href="https://github.com/karlfloersch/evm-scaling-an-introduction"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mt-2 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+              </svg>
+              View source on GitHub
+            </motion.a>
+          </div>
+        </AnimatedText>
+      </div>
     </SlideContainer>
   );
 }
