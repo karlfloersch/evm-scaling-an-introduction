@@ -41,9 +41,9 @@ export function ProjectsSlide() {
                 💬
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-white mb-2">Let's Talk!</h3>
+                <h3 className="text-xl font-semibold text-white mb-2">Let&apos;s Talk!</h3>
                 <p className="text-gray-400 leading-relaxed mb-4">
-                  I'd love to discuss this stuff with you. Whether you're working on client implementations,
+                  I&apos;d love to discuss this stuff with you. Whether you&apos;re working on client implementations,
                   L2 scaling, or fee market research — please reach out!
                 </p>
                 <div className="flex items-center gap-4">
