@@ -25,8 +25,8 @@ export function WhatWeWillBuildSlide() {
     },
     {
       number: '4',
-      title: 'Projects',
-      description: 'Real implementations compared',
+      title: 'Build Together',
+      description: 'How you can contribute',
       color: '#9775FA',
     },
   ];

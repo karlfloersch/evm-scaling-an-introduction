@@ -226,13 +226,13 @@ export function ScalingMatrixSlide() {
       <div className="flex items-center gap-6 mt-4 text-xs text-gray-500">
         <span className="text-gray-400">Impact levels:</span>
         <span>
-          <span className="text-primary-400 font-bold">+</span> Minor (~50% boost)
+          <span className="text-primary-400 font-bold">+</span> Minor
         </span>
         <span>
-          <span className="text-primary-400 font-bold">++</span> Significant (~3x boost)
+          <span className="text-primary-400 font-bold">++</span> Significant
         </span>
         <span>
-          <span className="text-primary-400 font-bold">+++</span> Major (10x+ boost)
+          <span className="text-primary-400 font-bold">+++</span> Major
         </span>
       </div>
 

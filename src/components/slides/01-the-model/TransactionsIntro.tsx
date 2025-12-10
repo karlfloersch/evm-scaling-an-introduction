@@ -17,6 +17,11 @@ export function TransactionsIntroSlide() {
         subtitle="Different transaction types consume different amounts of each resource."
       />
 
+      <p className="text-sm text-gray-500 -mt-8 mb-6 text-center">
+        Resource categories are real, but consumption numbers are directional — actual values vary by client implementation.
+        See <a href="https://github.com/ethereum/execution-specs" target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:text-primary-300 underline">ethereum/execution-specs</a> for benchmarks.
+      </p>
+
       <div className="grid md:grid-cols-3 gap-6">
         {/* Transaction selector */}
         <AnimatedText delay={0.2}>

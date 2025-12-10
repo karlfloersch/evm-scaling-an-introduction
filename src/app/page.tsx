@@ -49,7 +49,7 @@ const slideDefinitions = [
   // Interactive sections
   { id: 'simulation-dashboard', title: 'TPS Simulator', section: 'Interactive Simulation', sectionIndex: 4, slideIndex: 0 },
   { id: 'pump-your-numbers', title: 'Pump Your Numbers', section: 'The Game', sectionIndex: 5, slideIndex: 0 },
-  { id: 'projects-comparison', title: 'Project Comparison', section: 'Real World', sectionIndex: 6, slideIndex: 0 },
+  { id: 'projects-comparison', title: 'Build Together', section: 'What\'s Next', sectionIndex: 6, slideIndex: 0 },
 ];
 
 export default function Home() {
@@ -174,11 +174,32 @@ export default function Home() {
           className="text-center"
         >
           <h2 className="text-4xl font-bold text-white mb-4">
-            More Coming Soon
+            Make This Better!
           </h2>
-          <p className="text-gray-400 max-w-md mx-auto mb-8">
-            Project comparisons and the infamous &quot;Pump Your Numbers&quot;
-            section are in development.
+          <p className="text-gray-400 max-w-lg mx-auto mb-4">
+            Contribute on GitHub to add features, better metrics, improve the models,
+            or add scaling tech.
+          </p>
+          <p className="text-gray-500 text-sm max-w-lg mx-auto mb-8">
+            For the latest benchmarks, check out{' '}
+            <a
+              href="https://github.com/ethereum/execution-specs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-400 hover:text-primary-300 underline"
+            >
+              ethereum/execution-specs
+            </a>
+            . Special thanks to{' '}
+            <a
+              href="https://thesecretlivesofdata.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-400 hover:text-primary-300 underline"
+            >
+              The Secret Lives of Data
+            </a>
+            {' '}for inspiring the explanation of complex topics with live visualizations.
           </p>
           <div className="flex gap-4 justify-center">
             <a
@@ -193,19 +214,6 @@ export default function Home() {
               "
             >
               View on GitHub
-            </a>
-            <a
-              href="https://github.com/karlfloersch/evm-scaling-an-introduction/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="
-                px-6 py-3 rounded-lg
-                border border-white/20 hover:border-white/40
-                text-white font-medium
-                transition-all
-              "
-            >
-              Contribute
             </a>
           </div>
         </motion.div>
