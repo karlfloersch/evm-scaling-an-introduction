@@ -180,7 +180,7 @@ export default function Home() {
             Contribute on GitHub to add features, better metrics, improve the models,
             or add scaling tech.
           </p>
-          <p className="text-gray-500 text-sm max-w-lg mx-auto mb-8">
+          <p className="text-gray-500 text-sm max-w-lg mx-auto mb-4">
             For the latest benchmarks, check out{' '}
             <a
               href="https://github.com/ethereum/execution-specs"
@@ -200,6 +200,17 @@ export default function Home() {
               The Secret Lives of Data
             </a>
             {' '}for inspiring the explanation of complex topics with live visualizations.
+          </p>
+          <p className="text-gray-500 text-sm max-w-lg mx-auto mb-8">
+            Help bring the world onchain at{' '}
+            <a
+              href="https://optimism.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-red-400 hover:text-red-300 underline"
+            >
+              optimism.io
+            </a>
           </p>
           <div className="flex gap-4 justify-center">
             <a
